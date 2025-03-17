@@ -16,29 +16,28 @@ const PaymentHistory = () => {
         const response = await axios.get(`${API_BASE_URL}/Payment/get-all`);
         
         if (response.data && response.data.$values) {
-          // Transform the API data to match our table structure
-          const transformedData = response.data.$values.map(payment => {
-            // Get the first vaccine name for display (or combine multiple if needed)
-            const vaccineNames = payment.items.$values.map(item => item.vaccineName).join(', ');
-            
-            return {
-              key: payment.paymentId.toString(),
-              id: payment.paymentId,
-              // We don't have date in the API response, so using a placeholder
-              date: 'N/A', 
-              // We don't have customer/child name in the API response
-              customerName: 'N/A',
-              childName: 'N/A',
-              amount: payment.totalPrice,
-              paymentMethod: payment.paymentMethod === 'Cash' ? 'Cash' : 
-                            payment.paymentMethod === 'VNPay' ? 'VNPay' : 
-                            'Other',
-              status: payment.paymentStatus === 'Paid' ? 'Paid' : 'Unpaid',
-              type: payment.type || 'Unknown',
-              packageStatus: payment.packageProcessStatus,
-              vaccines: vaccineNames
-            };
-          });
+          // Transform và lọc data - chỉ lấy những payment có type
+          const transformedData = response.data.$values
+            .filter(payment => payment.type !== null) // Lọc bỏ các payment có type null
+            .map(payment => {
+              const vaccineNames = payment.items.$values.map(item => item.vaccineName).join(', ');
+              
+              return {
+                key: payment.paymentId.toString(),
+                id: payment.paymentId,
+                date: 'N/A', 
+                customerName: 'N/A',
+                childName: 'N/A',
+                amount: payment.totalPrice,
+                paymentMethod: payment.paymentMethod === 'Cash' ? 'Cash' : 
+                              payment.paymentMethod === 'VNPay' ? 'VNPay' : 
+                              'Other',
+                status: payment.paymentStatus === 'Paid' ? 'Paid' : 'Unpaid',
+                type: payment.type,
+                packageStatus: payment.packageProcessStatus,
+                vaccines: vaccineNames
+              };
+            });
           
           setData(transformedData);
         }
@@ -64,6 +63,8 @@ const PaymentHistory = () => {
       dataIndex: 'type',
       key: 'type',
       render: (type) => {
+        if (!type) return null;
+        
         let displayText = 'Unknown';
         let color = 'default';
         
