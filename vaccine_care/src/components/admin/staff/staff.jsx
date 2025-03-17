@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './staff.css';
 import RegisterForm from './RegisterForm';
-import axios from 'axios';
+import api from '../../../services/api';
 import { Modal, message } from 'antd';
 
 const Staff = () => {
@@ -18,7 +18,7 @@ const Staff = () => {
 
     const fetchStaffMembers = async () => {
         try {
-            const response = await axios.get('https://vaccinecare.azurewebsites.net/api/User/get-all?FilterOn=role&FilterQuery=staff');
+            const response = await api.get('/User/get-all?FilterOn=role&FilterQuery=staff');
             setStaffMembers(response.data.$values);
         } catch (error) {
             console.error('Error fetching staff members:', error);
@@ -27,7 +27,7 @@ const Staff = () => {
 
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('https://vaccinecare.azurewebsites.net/api/User/get-all?FilterOn=role&FilterQuery=doctor');
+            const response = await api.get('/User/get-all?FilterOn=role&FilterQuery=doctor');
             setDoctors(response.data.$values);
         } catch (error) {
             console.error('Error fetching doctors:', error);
@@ -83,7 +83,7 @@ const Staff = () => {
     const currentItems = currentData.slice(indexOfFirstItem, indexOfLastItem);
 
     const createStaff = (data) => {
-        return axios.post('https://vaccinecare.azurewebsites.net/api/User/create-staff', {
+        return api.post('/User/create-staff', {
             username: data.username,
             password: data.password,
             email: data.email
@@ -91,7 +91,7 @@ const Staff = () => {
     };
 
     const createDoctor = (data) => {
-        return axios.post('https://vaccinecare.azurewebsites.net/api/User/create-doctor', {
+        return api.post('/User/create-doctor', {
             username: data.username,
             password: data.password,
             email: data.email
@@ -150,8 +150,8 @@ const Staff = () => {
         if (!userToDelete) return;
         
         try {
-            await axios.delete(`https://vaccinecare.azurewebsites.net/api/User/delete?id=${userToDelete.id}`);
-            message.success(`Đã xóa ${userToDelete.role === 'doctor' ? 'bác sĩ' : 'nhân viên'} thành công!`);
+            await api.delete(`/User/delete?id=${userToDelete.id}`);
+            message.success(`Successfully deleted ${userToDelete.role === 'doctor' ? 'doctor' : 'staff member'}!`);
             
             if (userToDelete.role === 'doctor') {
                 await fetchDoctors();
@@ -163,7 +163,7 @@ const Staff = () => {
             setUserToDelete(null);
         } catch (error) {
             console.error('Error deleting user:', error);
-            message.error('Không thể xóa người dùng. Vui lòng thử lại sau!');
+            message.error('Unable to delete user. Please try again later!');
         }
     };
 
@@ -218,13 +218,13 @@ const Staff = () => {
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Họ và tên</th>
-                                <th>Tên đăng nhập</th>
+                                <th>Full Name</th>
+                                <th>Username</th>
                                 <th>Email</th>
-                                <th>Vai trò</th>
-                                <th>Ngày tạo</th>
-                                <th>Cập nhật lần cuối</th>
-                                <th>Thao tác</th>
+                                <th>Role</th>
+                                <th>Created Date</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -234,15 +234,15 @@ const Staff = () => {
                                     <td>{item.fullname}</td>
                                     <td>{item.username}</td>
                                     <td>{item.email}</td>
-                                    <td>{item.role === 'doctor' ? 'Bác sĩ' : 'Nhân viên'}</td>
-                                    <td>{new Date(item.createdAt).toLocaleString('vi-VN')}</td>
-                                    <td>{new Date(item.updatedAt).toLocaleString('vi-VN')}</td>
+                                    <td>{item.role === 'doctor' ? 'Doctor' : 'Staff'}</td>
+                                    <td>{new Date(item.createdAt).toLocaleString('en-US')}</td>
+                                    <td>{new Date(item.updatedAt).toLocaleString('en-US')}</td>
                                     <td>
                                         <button 
                                             className="admin-delete-button" 
                                             onClick={() => showDeleteConfirm(item)}
                                         >
-                                            Xóa
+                                            Delete
                                         </button>
                                     </td>
                                 </tr>
@@ -276,20 +276,20 @@ const Staff = () => {
                 />
 
                 <Modal
-                    title="Xác nhận xóa"
+                    title="Confirm Delete"
                     open={deleteModalVisible}
                     onOk={handleDeleteUser}
                     onCancel={() => {
                         setDeleteModalVisible(false);
                         setUserToDelete(null);
                     }}
-                    okText="Xóa"
-                    cancelText="Hủy"
+                    okText="Delete"
+                    cancelText="Cancel"
                 >
                     <p>
-                        Bạn có chắc chắn muốn xóa {userToDelete?.role === 'doctor' ? 'bác sĩ' : 'nhân viên'} <strong>{userToDelete?.fullname || userToDelete?.username}</strong>?
+                        Are you sure you want to delete {userToDelete?.role === 'doctor' ? 'doctor' : 'staff member'} <strong>{userToDelete?.fullname || userToDelete?.username}</strong>?
                     </p>
-                    <p>Hành động này không thể hoàn tác.</p>
+                    <p>This action cannot be undone.</p>
                 </Modal>
             </div>
         </div>

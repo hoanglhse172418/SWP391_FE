@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'antd';
-import axios from 'axios';
+import api from '../../../services/api';
 import './disease.css';
 
 const Disease = () => {
     const [diseases, setDiseases] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const getAllDiseases = () => axios.get('https://vaccinecare.azurewebsites.net/api/Disease/get-all?PageSize=30');
+    const getAllDiseases = () => api.get('/Disease/get-all');
 
     useEffect(() => {
         fetchDiseases();

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Table } from 'antd';
-import axios from 'axios';
+import api from '../../../services/api';
 import './child.css';
 
 const Child = () => {
     const [children, setChildren] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const getAllChildren = () => axios.get('https://vaccinecare.azurewebsites.net/api/Child/get-all');
+    const getAllChildren = () => api.get('/Child/get-all');
 
     useEffect(() => {
         fetchChildren();
@@ -19,7 +19,7 @@ const Child = () => {
             const formattedData = response.data.$values.map(child => ({
                 id: child.id,
                 name: child.childrenFullname,
-                dateOfBirth: new Date(child.dob).toLocaleDateString('vi-VN'),
+                dateOfBirth: new Date(child.dob).toLocaleDateString('en-US'),
                 gender: child.gender,
                 fatherName: child.fatherFullName,
                 motherName: child.motherFullName,

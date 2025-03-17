@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Tag, Image, Tooltip, Radio, Button, message, Modal, Input, InputNumber, Select } from 'antd';
-import axios from 'axios';
+import api from '../../../services/api';
 import './vaccine.css';
 
 const Vaccine = () => {
@@ -29,8 +29,8 @@ const Vaccine = () => {
     const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
     const [vaccineToUpdate, setVaccineToUpdate] = useState(null);
 
-    const getAllVaccines = () => axios.get('https://vaccinecare.azurewebsites.net/api/Vaccine/get-all');
-    const getAllVaccinePackages = () => axios.get('https://vaccinecare.azurewebsites.net/api/VaccinePackage/get-all');
+    const getAllVaccines = () => api.get('/Vaccine/get-all');
+    const getAllVaccinePackages = () => api.get('/VaccinePackage/get-all');
 
     useEffect(() => {
         if (activeTab === 'vaccine') {
@@ -85,7 +85,7 @@ const Vaccine = () => {
 
     const fetchVaccinePackageDetails = async (id) => {
         try {
-            const response = await axios.get(`https://vaccinecare.azurewebsites.net/api/VaccinePackage/get-by-id/${id}`);
+            const response = await api.get(`/VaccinePackage/get-by-id/${id}`);
             return response.data.vaccinePackageItems.$values.map(item => ({
                 id: item.vaccine.id,
                 name: item.vaccine.name,
@@ -276,12 +276,11 @@ const Vaccine = () => {
 
     const handleDelete = async () => {
         try {
-            await axios.delete(`https://vaccinecare.azurewebsites.net/api/VaccinePackage/delete/${deleteId}`);
-            message.success('Vaccine package deleted successfully.');
-            fetchVaccinePackages(); // Refresh the list after deletion
+            await api.delete(`/VaccinePackage/delete?id=${deleteId}`);
+            message.success('Package deleted successfully');
+            fetchVaccinePackages();
         } catch (error) {
-            console.error('Error deleting vaccine package:', error);
-            message.error('An error occurred while deleting the vaccine package.');
+            message.error('Failed to delete package');
         } finally {
             setIsModalVisible(false);
             setDeleteId(null);
@@ -355,7 +354,7 @@ const Vaccine = () => {
             // Log payload trước khi gửi
             console.log('Sending payload:', payload);
 
-            const response = await axios.post('https://vaccinecare.azurewebsites.net/api/VaccinePackage/create', payload);
+            const response = await api.post('/VaccinePackage/create', payload);
             
             // Log response
             console.log('API Response:', response);
@@ -405,7 +404,7 @@ const Vaccine = () => {
             formData.append('Price', newVaccine.price);
             formData.append('Notes', newVaccine.notes);
 
-            await axios.post('https://vaccinecare.azurewebsites.net/api/Vaccine/create', formData, {
+            await api.post('/Vaccine/create', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -455,7 +454,7 @@ const Vaccine = () => {
             formData.append('Price', vaccineToUpdate.price);
             formData.append('Notes', vaccineToUpdate.notes);
 
-            await axios.put(`https://vaccinecare.azurewebsites.net/api/Vaccine/update/${vaccineToUpdate.id}`, formData, {
+            await api.put(`/Vaccine/update/${vaccineToUpdate.id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

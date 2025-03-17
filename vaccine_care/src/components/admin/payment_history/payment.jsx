@@ -3,7 +3,7 @@ import { Table, Tag, Spin, message } from 'antd';
 import axios from 'axios';
 import './payment.css';
 
-// Base API URL constant
+// Move API_BASE_URL to a separate config file or environment variable
 const API_BASE_URL = 'https://vaccinecare.azurewebsites.net/api';
 
 const PaymentHistory = () => {
@@ -134,6 +134,30 @@ const PaymentHistory = () => {
       onFilter: (value, record) => record.packageStatus === value,
     },
   ];
+
+  // Update payment status translations
+  const getPaymentStatus = (status) => {
+    switch (status) {
+      case 'Đã thanh toán':
+        return 'Paid';
+      case 'Chưa thanh toán':
+        return 'Unpaid';
+      default:
+        return status;
+    }
+  };
+
+  // Update payment method translations
+  const getPaymentMethod = (method) => {
+    switch (method) {
+      case 'Tiền mặt':
+        return 'Cash';
+      case 'Phương thức khác':
+        return 'Other';
+      default:
+        return method;
+    }
+  };
 
   return (
     <div className="admin">
