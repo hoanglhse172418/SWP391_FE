@@ -11,7 +11,7 @@ const Dashboard = () => {
     
     const [stats, setStats] = useState([
         { name: 'Total Patients', value: 0, icon: <Users className="h-8 w-8" /> },
-        { name: 'Today Appointments', value: 0, icon: <Calendar className="h-8 w-8" /> },
+        { name: 'Total Appointments', value: 0, icon: <Calendar className="h-8 w-8" /> },
         { name: 'Total Vaccines', value: 0, icon: <Bed className="h-8 w-8" /> },
         { name: 'Active Staff', value: 0, icon: <UserCheck className="h-8 w-8" /> },
     ]);
@@ -27,10 +27,12 @@ const Dashboard = () => {
                 // Fetch all data in parallel
                 const [patientsData, appointmentsData, vaccinesData, usersData] = await Promise.all([
                     api.get('/Child/get-all').catch(() => ({ data: { $values: [] } })),
-                    api.get('/Appointment/get-today-appointments').catch(() => ({ data: { $values: [] } })),
+                    api.get('/Appointment/get-all').catch(() => ({ data: { $values: [] } })),
                     api.get('/Vaccine/get-all').catch(() => ({ data: { $values: [] } })),
                     api.get('/User/get-all').catch(() => ({ data: { $values: [] } }))
                 ]);
+                
+                console.log('Appointments Response:', appointmentsData); // Debug log
                 
                 // Process patients data
                 const totalPatients = patientsData.data?.$values?.length || 0;
@@ -42,9 +44,10 @@ const Dashboard = () => {
                 
                 // Process appointments data
                 const appointments = appointmentsData.data?.$values || [];
+                console.log('Today appointments:', appointments); // Debug log
                 setStats(prevStats => {
                     const newStats = [...prevStats];
-                    newStats[1] = { ...newStats[1], value: appointments.length };
+                    newStats[1] = { ...newStats[1], name: 'Total Appointments', value: appointments.length };
                     return newStats;
                 });
                 setAppointmentData(appointments);
@@ -90,19 +93,25 @@ const Dashboard = () => {
 
     // Process appointment data for charts
     const getAppointmentStatusData = () => {
-        if (!appointmentData.length) return [];
+        if (!appointmentData || appointmentData.length === 0) {
+            return [];
+        }
         
+        // Count appointments by status
         const statusCounts = appointmentData.reduce((acc, appointment) => {
-            const status = appointment.status;
+            const status = appointment.status || 'Unknown';
             acc[status] = (acc[status] || 0) + 1;
             return acc;
         }, {});
         
-        return Object.keys(statusCounts).map(status => ({
-            name: status === 'Completed' ? 'Completed' : 
-                  status === 'Processing' ? 'Processing' : status,
-            value: statusCounts[status]
+        // Convert to array format for pie chart
+        const result = Object.entries(statusCounts).map(([status, count]) => ({
+            name: status,
+            value: count
         }));
+        
+        console.log('Appointment status data:', result); // Debug log
+        return result;
     };
     
     // Process user data for charts
@@ -238,30 +247,36 @@ const Dashboard = () => {
                                     transitionDelay: '0.4s'
                                 }}
                             >
-                                <h2>Today's Appointment Status</h2>
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <PieChart>
-                                        <Pie
-                                            data={getAppointmentStatusData()}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={true}
-                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                            outerRadius={80}
-                                            fill="#8884d8"
-                                            dataKey="value"
-                                            animationBegin={0}
-                                            animationDuration={1500}
-                                            animationEasing="ease-out"
-                                        >
-                                            {getAppointmentStatusData().map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                        <Legend />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                                <h2>All Appointments Status</h2>
+                                {appointmentData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={250}>
+                                        <PieChart>
+                                            <Pie
+                                                data={getAppointmentStatusData()}
+                                                cx="50%"
+                                                cy="50%"
+                                                labelLine={true}
+                                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                                outerRadius={80}
+                                                fill="#8884d8"
+                                                dataKey="value"
+                                                animationBegin={0}
+                                                animationDuration={1500}
+                                                animationEasing="ease-out"
+                                            >
+                                                {getAppointmentStatusData().map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div style={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        No appointments available
+                                    </div>
+                                )}
                             </div>
                             
                             {/* Chart 3: Vaccines by Age Range */}
