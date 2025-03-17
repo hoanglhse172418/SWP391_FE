@@ -26,59 +26,57 @@ const Dashboard = () => {
             try {
                 // Fetch all data in parallel
                 const [patientsData, appointmentsData, vaccinesData, usersData] = await Promise.all([
-                    api.get('/Child/get-all'),
-                    api.get('/Appointment/get-appointment-today'),
-                    api.get('/Vaccine/get-all'),
-                    api.get('/User/get-all')
+                    api.get('/Child/get-all').catch(() => ({ data: { $values: [] } })),
+                    api.get('/Appointment/get-today-appointments').catch(() => ({ data: { $values: [] } })),
+                    api.get('/Vaccine/get-all').catch(() => ({ data: { $values: [] } })),
+                    api.get('/User/get-all').catch(() => ({ data: { $values: [] } }))
                 ]);
                 
                 // Process patients data
-                if (patientsData.data && patientsData.data.$values) {
-                    const totalPatients = patientsData.data.$values.length;
-                    setStats(prevStats => {
-                        const newStats = [...prevStats];
-                        newStats[0] = { ...newStats[0], value: totalPatients };
-                        return newStats;
-                    });
-                }
+                const totalPatients = patientsData.data?.$values?.length || 0;
+                setStats(prevStats => {
+                    const newStats = [...prevStats];
+                    newStats[0] = { ...newStats[0], value: totalPatients };
+                    return newStats;
+                });
                 
                 // Process appointments data
-                if (appointmentsData.data && appointmentsData.data.$values) {
-                    const appointments = appointmentsData.data.$values;
-                    setStats(prevStats => {
-                        const newStats = [...prevStats];
-                        newStats[1] = { ...newStats[1], value: appointments.length };
-                        return newStats;
-                    });
-                    setAppointmentData(appointments);
-                }
+                const appointments = appointmentsData.data?.$values || [];
+                setStats(prevStats => {
+                    const newStats = [...prevStats];
+                    newStats[1] = { ...newStats[1], value: appointments.length };
+                    return newStats;
+                });
+                setAppointmentData(appointments);
                 
                 // Process vaccines data
-                if (vaccinesData.data && vaccinesData.data.$values) {
-                    const vaccines = vaccinesData.data.$values;
-                    setStats(prevStats => {
-                        const newStats = [...prevStats];
-                        newStats[2] = { ...newStats[2], value: vaccines.length };
-                        return newStats;
-                    });
-                    setVaccineData(vaccines);
-                }
+                const vaccines = vaccinesData.data?.$values || [];
+                setStats(prevStats => {
+                    const newStats = [...prevStats];
+                    newStats[2] = { ...newStats[2], value: vaccines.length };
+                    return newStats;
+                });
+                setVaccineData(vaccines);
                 
                 // Process users data - count staff and doctors
-                if (usersData.data && usersData.data.$values) {
-                    const users = usersData.data.$values;
-                    const staffCount = users.filter(
-                        user => user.role === 'staff' || user.role === 'doctor'
-                    ).length;
-                    setStats(prevStats => {
-                        const newStats = [...prevStats];
-                        newStats[3] = { ...newStats[3], value: staffCount };
-                        return newStats;
-                    });
-                    setUserData(users);
-                }
+                const users = usersData.data?.$values || [];
+                const staffCount = users.filter(
+                    user => user.role === 'staff' || user.role === 'doctor'
+                ).length;
+                setStats(prevStats => {
+                    const newStats = [...prevStats];
+                    newStats[3] = { ...newStats[3], value: staffCount };
+                    return newStats;
+                });
+                setUserData(users);
+                
             } catch (error) {
                 console.error('Error fetching data:', error);
+                // Nếu có lỗi, set tất cả giá trị về 0
+                setStats(prevStats => prevStats.map(stat => ({ ...stat, value: 0 })));
+                setAppointmentData([]);
+                setVaccineData([]);
+                setUserData([]);
             } finally {
                 setLoading(false);
                 setTimeout(() => {
