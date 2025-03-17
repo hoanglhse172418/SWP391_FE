@@ -216,8 +216,8 @@ const Dashboard = () => {
                                     <PieChart>
                                         <Pie
                                             data={[
-                                                { name: 'Nam', value: Math.round(stats[0].value * 0.55) },
-                                                { name: 'Nữ', value: Math.round(stats[0].value * 0.45) }
+                                                { name: 'Male', value: Math.round(stats[0].value * 0.55) },
+                                                { name: 'Female', value: Math.round(stats[0].value * 0.45) }
                                             ]}
                                             cx="50%"
                                             cy="50%"
