@@ -54,19 +54,34 @@ function CusPaymentPage() {
       api.get('/VNPay/ReturnUrl' + window.location.search, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(response => {
+      .then(async response => {
         if (vnpayStatus === '00') {
-          navigate('/paymentss'); // Chuyển đến trang thanh toán thành công
+          // Sửa lại cách gửi parameters
+          try {
+            const params = new URLSearchParams({
+              appointmentID: appointmentDetails?.id,
+              PaymentMethod: 'VNPay'
+            });
+            
+            await api.post(`/Payment/update-status-payment-status/step-3-to-4?${params}`, null, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            navigate('/paymentss'); // Chuyển đến trang thanh toán thành công
+          } catch (error) {
+            console.error('Lỗi khi cập nhật trạng thái thanh toán:', error);
+            navigate('/paymentFaild');
+          }
         } else {
-          navigate('/paymentFaild'); // Chuyển đến trang thanh toán thất bại
+          navigate('/paymentFaild');
         }
       })
       .catch(error => {
         console.error('Lỗi khi kiểm tra kết quả thanh toán:', error);
-        navigate('/paymentFaild'); // Chuyển đến trang thất bại nếu có lỗi
+        navigate('/paymentFaild');
       });
     }
-  }, [navigate, token]);
+  }, [navigate, token, appointmentDetails]);
 
   useEffect(() => {
     const fetchDetails = async () => {
