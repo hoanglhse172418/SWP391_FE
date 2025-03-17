@@ -42,42 +42,42 @@ const Child = () => {
             key: 'id',
         },
         {
-            title: 'Họ và tên',
+            title: 'Full Name',
             dataIndex: 'name',
             key: 'name',
         },
         {
-            title: 'Ngày sinh',
+            title: 'Date of Birth',
             dataIndex: 'dateOfBirth',
             key: 'dateOfBirth',
         },
         {
-            title: 'Giới tính',
+            title: 'Gender',
             dataIndex: 'gender',
             key: 'gender',
         },
         {
-            title: 'Tên ba',
+            title: "Father's Name",
             dataIndex: 'fatherName',
             key: 'fatherName',
         },
         {
-            title: 'SĐT ba',
+            title: "Father's Phone",
             dataIndex: 'fatherPhone',
             key: 'fatherPhone',
         },
         {
-            title: 'Tên mẹ',
+            title: "Mother's Name",
             dataIndex: 'motherName',
             key: 'motherName',
         },
         {
-            title: 'SĐT mẹ',
+            title: "Mother's Phone",
             dataIndex: 'motherPhone',
             key: 'motherPhone',
         },
         {
-            title: 'Địa chỉ',
+            title: 'Address',
             dataIndex: 'address',
             key: 'address',
         },
@@ -86,7 +86,7 @@ const Child = () => {
     return (
         <div className="admin">
             <div className="child-management">
-                <h2 className="child-management-title">Quản lý trẻ em</h2>
+                <h2 className="child-management-title">Child Management</h2>
                 <Table 
                     columns={columns} 
                     dataSource={children}

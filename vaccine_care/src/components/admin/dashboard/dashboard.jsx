@@ -10,10 +10,10 @@ const Dashboard = () => {
     const PRIMARY_COLOR = '#00b894'; // This should match your sidebar color
     
     const [stats, setStats] = useState([
-        { name: 'Tổng số bệnh nhân', value: 0, icon: <Users className="h-8 w-8" /> },
-        { name: 'Lịch hẹn hôm nay', value: 0, icon: <Calendar className="h-8 w-8" /> },
-        { name: 'Tổng số vắc xin', value: 0, icon: <Bed className="h-8 w-8" /> },
-        { name: 'Nhân viên trực', value: 0, icon: <UserCheck className="h-8 w-8" /> },
+        { name: 'Total Patients', value: 0, icon: <Users className="h-8 w-8" /> },
+        { name: 'Today Appointments', value: 0, icon: <Calendar className="h-8 w-8" /> },
+        { name: 'Total Vaccines', value: 0, icon: <Bed className="h-8 w-8" /> },
+        { name: 'Active Staff', value: 0, icon: <UserCheck className="h-8 w-8" /> },
     ]);
     const [loading, setLoading] = useState(true);
     const [appointmentData, setAppointmentData] = useState([]);
@@ -99,8 +99,8 @@ const Dashboard = () => {
         }, {});
         
         return Object.keys(statusCounts).map(status => ({
-            name: status === 'Completed' ? 'Hoàn thành' : 
-                  status === 'Processing' ? 'Đang xử lý' : status,
+            name: status === 'Completed' ? 'Completed' : 
+                  status === 'Processing' ? 'Processing' : status,
             value: statusCounts[status]
         }));
     };
@@ -116,10 +116,10 @@ const Dashboard = () => {
         }, {});
         
         return Object.keys(roleCounts).map(role => ({
-            name: role === 'admin' ? 'Quản trị viên' : 
-                  role === 'doctor' ? 'Bác sĩ' : 
-                  role === 'staff' ? 'Nhân viên' : 
-                  role === 'user' ? 'Người dùng' : role,
+            name: role === 'admin' ? 'Administrator' : 
+                  role === 'doctor' ? 'Doctor' : 
+                  role === 'staff' ? 'Staff' : 
+                  role === 'user' ? 'User' : role,
             value: roleCounts[role]
         }));
     };
@@ -128,13 +128,12 @@ const Dashboard = () => {
     const getVaccineAgeRangeData = () => {
         if (!vaccineData.length) return [];
         
-        // Group vaccines by age range
         const ageRanges = [
-            { range: '0-1 tuổi', min: 0, max: 1 },
-            { range: '1-2 tuổi', min: 1, max: 2 },
-            { range: '2-5 tuổi', min: 2, max: 5 },
-            { range: '5-10 tuổi', min: 5, max: 10 },
-            { range: '10+ tuổi', min: 10, max: 100 }
+            { range: '0-1 years', min: 0, max: 1 },
+            { range: '1-2 years', min: 1, max: 2 },
+            { range: '2-5 years', min: 2, max: 5 },
+            { range: '5-10 years', min: 5, max: 10 },
+            { range: '10+ years', min: 10, max: 100 }
         ];
         
         const ageRangeCounts = ageRanges.map(range => {
@@ -164,7 +163,7 @@ const Dashboard = () => {
     return (
         <div className="admin">
             <div className="admin-dashboard-container">
-                <h1 className="admin-dashboard-title">Bảng điều khiển</h1>
+                <h1 className="admin-dashboard-title">Dashboard</h1>
                 {loading ? (
                     <div className="loading-container">
                         <Spin size="large" />
@@ -203,7 +202,7 @@ const Dashboard = () => {
                                     transitionDelay: '0.2s'
                                 }}
                             >
-                                <h2>Phân bố bệnh nhân theo giới tính</h2>
+                                <h2>Patient Gender Distribution</h2>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
                                         <Pie
@@ -239,7 +238,7 @@ const Dashboard = () => {
                                     transitionDelay: '0.4s'
                                 }}
                             >
-                                <h2>Trạng thái lịch hẹn hôm nay</h2>
+                                <h2>Today's Appointment Status</h2>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
                                         <Pie
@@ -273,7 +272,7 @@ const Dashboard = () => {
                                     transitionDelay: '0.6s'
                                 }}
                             >
-                                <h2>Vắc xin theo độ tuổi</h2>
+                                <h2>Vaccines by Age Range</h2>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <BarChart
                                         data={getVaccineAgeRangeData()}
@@ -304,7 +303,7 @@ const Dashboard = () => {
                                     transitionDelay: '0.8s'
                                 }}
                             >
-                                <h2>Phân bố vai trò người dùng</h2>
+                                <h2>User Role Distribution</h2>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
                                         <Pie

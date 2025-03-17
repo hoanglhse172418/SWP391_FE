@@ -30,11 +30,11 @@ const PaymentHistory = () => {
               customerName: 'N/A',
               childName: 'N/A',
               amount: payment.totalPrice,
-              paymentMethod: payment.paymentMethod === 'Cash' ? 'Tiền mặt' : 
+              paymentMethod: payment.paymentMethod === 'Cash' ? 'Cash' : 
                             payment.paymentMethod === 'VNPay' ? 'VNPay' : 
-                            'Phương thức khác',
-              status: payment.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán',
-              type: payment.type || 'N/A',
+                            'Other',
+              status: payment.paymentStatus === 'Paid' ? 'Paid' : 'Unpaid',
+              type: payment.type || 'Unknown',
               packageStatus: payment.packageProcessStatus,
               vaccines: vaccineNames
             };
@@ -55,23 +55,23 @@ const PaymentHistory = () => {
 
   const columns = [
     {
-      title: 'Mã hóa đơn',
+      title: 'Payment ID',
       dataIndex: 'id',
       key: 'id',
     },
     {
-      title: 'Loại',
+      title: 'Type',
       dataIndex: 'type',
       key: 'type',
       render: (type) => {
-        let displayText = 'Không xác định';
+        let displayText = 'Unknown';
         let color = 'default';
         
         if (type === 'Single') {
-          displayText = 'Đơn lẻ';
+          displayText = 'Single';
           color = 'blue';
         } else if (type === 'Package') {
-          displayText = 'Gói';
+          displayText = 'Package';
           color = 'purple';
         }
         
@@ -79,57 +79,57 @@ const PaymentHistory = () => {
       }
     },
     {
-      title: 'Vắc xin',
+      title: 'Vaccines',
       dataIndex: 'vaccines',
       key: 'vaccines',
       ellipsis: true,
     },
     {
-      title: 'Số tiền',
+      title: 'Amount (VND)',
       dataIndex: 'amount',
       key: 'amount',
       render: (amount) => `${parseInt(amount).toLocaleString('vi-VN')} VNĐ`,
       sorter: (a, b) => a.amount - b.amount,
     },
     {
-      title: 'Phương thức',
+      title: 'Payment Method',
       dataIndex: 'paymentMethod',
       key: 'paymentMethod',
       filters: [
-        { text: 'Tiền mặt', value: 'Tiền mặt' },
+        { text: 'Cash', value: 'Cash' },
         { text: 'VNPay', value: 'VNPay' },
-        { text: 'Phương thức khác', value: 'Phương thức khác' },
+        { text: 'Other', value: 'Phương thức khác' },
       ],
       onFilter: (value, record) => record.paymentMethod === value,
     },
     {
-      title: 'Trạng thái thanh toán',
+      title: 'Payment Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Đã thanh toán' ? 'green' : 'red'}>
-          {status}
+        <Tag color={status === 'Paid' ? 'green' : 'red'}>
+          {status === 'Paid' ? 'Paid' : 'Unpaid'}
         </Tag>
       ),
     },
     {
-      title: 'Trạng thái gói',
+      title: 'Package Status',
       dataIndex: 'packageStatus',
       key: 'packageStatus',
       render: (status) => {
         let color = 'orange';
-        let text = 'Chưa hoàn thành';
+        let text = 'Incomplete';
         
         if (status === 'Completed') {
           color = 'green';
-          text = 'Đã hoàn thành';
+          text = 'Completed';
         }
         
         return <Tag color={color}>{text}</Tag>;
       },
       filters: [
-        { text: 'Đã hoàn thành', value: 'Completed' },
-        { text: 'Chưa hoàn thành', value: 'NotComplete' },
+        { text: 'Completed', value: 'Completed' },
+        { text: 'Incomplete', value: 'NotComplete' },
       ],
       onFilter: (value, record) => record.packageStatus === value,
     },
@@ -138,7 +138,7 @@ const PaymentHistory = () => {
   return (
     <div className="admin">
       <div className="payment-history">
-        <h2 className="payment-history-title">Lịch sử thanh toán</h2>
+        <h2 className="payment-history-title">Payment History</h2>
         {loading ? (
           <div className="loading-container">
             <Spin size="large" />

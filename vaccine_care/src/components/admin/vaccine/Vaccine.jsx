@@ -114,7 +114,7 @@ const Vaccine = () => {
             width: 70,
         },
         {
-            title: 'Hình ảnh',
+            title: 'Image',
             dataIndex: 'imageUrl',
             key: 'imageUrl',
             width: 120,
@@ -127,19 +127,19 @@ const Vaccine = () => {
             ),
         },
         {
-            title: 'Tên vaccine',
+            title: 'Vaccine Name',
             dataIndex: 'name',
             key: 'name',
             width: 150,
         },
         {
-            title: 'Nhà sản xuất',
+            title: 'Manufacturer',
             dataIndex: 'manufacture',
             key: 'manufacture',
             width: 120,
         },
         {
-            title: 'Mô tả',
+            title: 'Description',
             dataIndex: 'description',
             key: 'description',
             width: 300,
@@ -152,7 +152,7 @@ const Vaccine = () => {
             ),
         },
         {
-            title: 'Độ tuổi (năm)',
+            title: 'Age Range (years)',
             key: 'age',
             width: 150,
             render: (_, record) => (
@@ -160,30 +160,30 @@ const Vaccine = () => {
             ),
         },
         {
-            title: 'Số lượng',
+            title: 'Quantity',
             dataIndex: 'inStockNumber',
             key: 'inStockNumber',
             width: 100,
         },
         {
-            title: 'Giá (VNĐ)',
+            title: 'Price (VND)',
             dataIndex: 'price',
             key: 'price',
             width: 120,
         },
         {
-            title: 'Trạng thái',
+            title: 'Status',
             dataIndex: 'status',
             key: 'status',
             width: 120,
             render: (status) => (
                 <Tag color={status === 'Còn hàng' ? 'green' : 'red'}>
-                    {status}
+                    {status === 'Còn hàng' ? 'In Stock' : 'Out of Stock'}
                 </Tag>
             ),
         },
         {
-            title: 'Thao tác',
+            title: 'Actions',
             key: 'action',
             width: 120,
             render: (_, record) => (
@@ -205,7 +205,7 @@ const Vaccine = () => {
                         setIsUpdateModalVisible(true);
                     }}
                 >
-                    Cập nhật
+                    Update
                 </Button>
             ),
         },
@@ -219,32 +219,32 @@ const Vaccine = () => {
             width: 70,
         },
         {
-            title: 'Tên gói',
+            title: 'Package Name',
             dataIndex: 'name',
             key: 'name',
             width: 200,
         },
         {
-            title: 'Số lượng vaccine',
+            title: 'Vaccine Count',
             dataIndex: 'vaccineCount',
             key: 'vaccineCount',
             width: 150,
         },
         {
-            title: 'Tổng giá (VNĐ)',
+            title: 'Total Price (VND)',
             dataIndex: 'totalPrice',
             key: 'totalPrice',
             width: 150,
             render: (price) => price.toLocaleString('vi-VN'),
         },
         {
-            title: 'Ngày tạo',
+            title: 'Created Date',
             dataIndex: 'createdAt',
             key: 'createdAt',
             width: 120,
         },
         {
-            title: 'Trạng thái',
+            title: 'Status',
             dataIndex: 'status',
             key: 'status',
             width: 120,
@@ -255,7 +255,7 @@ const Vaccine = () => {
             ),
         },
         {
-            title: 'Hành động',
+            title: 'Actions',
             key: 'action',
             render: (_, record) => (
                 <Button 
@@ -263,7 +263,7 @@ const Vaccine = () => {
                     type="primary" 
                     onClick={() => showDeleteConfirm(record.id)}
                 >
-                    Xóa
+                    Delete
                 </Button>
             ),
         },
@@ -277,11 +277,11 @@ const Vaccine = () => {
     const handleDelete = async () => {
         try {
             await axios.delete(`https://vaccinecare.azurewebsites.net/api/VaccinePackage/delete/${deleteId}`);
-            message.success('Gói vaccine đã được xóa thành công.');
+            message.success('Vaccine package deleted successfully.');
             fetchVaccinePackages(); // Refresh the list after deletion
         } catch (error) {
             console.error('Error deleting vaccine package:', error);
-            message.error('Đã xảy ra lỗi khi xóa gói vaccine.');
+            message.error('An error occurred while deleting the vaccine package.');
         } finally {
             setIsModalVisible(false);
             setDeleteId(null);
@@ -297,17 +297,17 @@ const Vaccine = () => {
                 width: 70,
             },
             {
-                title: 'Tên Vaccine',
+                title: 'Vaccine Name',
                 dataIndex: 'vaccineName',
                 key: 'name',
             },
             {
-                title: 'Số liều',
+                title: 'Dose Number',
                 dataIndex: 'doseNumber',
                 key: 'doseNumber',
             },
             {
-                title: 'Giá mỗi liều (VNĐ)',
+                title: 'Price per Dose (VND)',
                 dataIndex: 'pricePerDose',
                 key: 'price',
                 render: (price) => price.toLocaleString('vi-VN'),
@@ -328,14 +328,14 @@ const Vaccine = () => {
         try {
             // Kiểm tra tên gói
             if (!packageName.trim()) {
-                message.error('Vui lòng nhập tên gói vaccine');
+                message.error('Please enter the vaccine package name');
                 return;
             }
 
             // Kiểm tra các vaccine được chọn
             const validVaccines = selectedVaccines.filter(v => v.vaccineId && v.doseNumber > 0);
             if (validVaccines.length === 0) {
-                message.error('Vui lòng chọn ít nhất một vaccine');
+                message.error('Please select at least one vaccine');
                 return;
             }
 
@@ -360,7 +360,7 @@ const Vaccine = () => {
             // Log response
             console.log('API Response:', response);
 
-            message.success('Gói vaccine đã được tạo thành công.');
+            message.success('Vaccine package created successfully.');
             setIsCreateModalVisible(false);
             setPackageName('');
             setSelectedVaccines([{ vaccineId: '', doseNumber: 1 }]);
@@ -371,7 +371,7 @@ const Vaccine = () => {
             if (error.response) {
                 console.error('Error response data:', error.response.data);
             }
-            message.error('Đã xảy ra lỗi khi tạo gói vaccine: ' + (error.response?.data?.message || error.message));
+            message.error('An error occurred while creating the vaccine package: ' + (error.response?.data?.message || error.message));
         }
     };
 
@@ -411,7 +411,7 @@ const Vaccine = () => {
                 },
             });
             
-            message.success('Vaccine đã được tạo thành công');
+            message.success('Vaccine created successfully');
             setIsCreateVaccineModalVisible(false);
             setNewVaccine({
                 vaccineName: '',
@@ -427,7 +427,7 @@ const Vaccine = () => {
             fetchVaccines(); // Refresh danh sách
         } catch (error) {
             console.error('Error creating vaccine:', error);
-            message.error('Đã xảy ra lỗi khi tạo vaccine');
+            message.error('An error occurred while creating the vaccine');
         }
     };
 
@@ -475,7 +475,7 @@ const Vaccine = () => {
             <div className="admin">
                 <div className="admin-vaccine-container">
                     <div className="admin-vaccine-header">
-                        <h2 className="admin-vaccine-title">Quản lý vaccine</h2>
+                        <h2 className="admin-vaccine-title">Vaccine Management</h2>
                         <div className="admin-vaccine-controls">
                             <Radio.Group 
                                 value={activeTab}
@@ -483,7 +483,7 @@ const Vaccine = () => {
                                 className="admin-vaccine-tabs"
                             >
                                 <Radio.Button value="vaccine">Vaccine</Radio.Button>
-                                <Radio.Button value="package">Gói Vaccine</Radio.Button>
+                                <Radio.Button value="package">Vaccine Package</Radio.Button>
                             </Radio.Group>
                             {activeTab === 'vaccine' ? (
                                 <Button 
@@ -491,7 +491,7 @@ const Vaccine = () => {
                                     onClick={() => setIsCreateVaccineModalVisible(true)}
                                     style={{ marginLeft: '16px' }}
                                 >
-                                    Tạo vaccine mới
+                                    Create New Vaccine
                                 </Button>
                             ) : (
                                 <Button 
@@ -499,7 +499,7 @@ const Vaccine = () => {
                                     onClick={() => setIsCreateModalVisible(true)}
                                     style={{ marginLeft: '16px' }}
                                 >
-                                    Tạo gói vaccine
+                                    Create New Vaccine Package
                                 </Button>
                             )}
                         </div>
