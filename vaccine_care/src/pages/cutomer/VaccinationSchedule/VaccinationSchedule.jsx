@@ -39,7 +39,7 @@ useEffect(() => {
 // Khi có vaccinationProfileId, lấy danh sách VaccinationDetail
 useEffect(() => {
   if (vaccinationProfileId) {
-    api.get(`/VaccinationDetail/get-all?FilterOn=vaccinationProfileId&FilterQuery=${vaccinationProfileId}&PageSize=100`)
+    api.get(`/VaccinationDetail/get-all?FilterOn=vaccinationProfileId&FilterQuery=${vaccinationProfileId}&PageSize=500`)
       .then(response => {
         const records = response.data.$values || [];
         setVaccinationRecords(records);
@@ -90,11 +90,11 @@ const handleBooking = () => {
       .catch(error => console.error("API fetch error: ", error));
   }, []);
 
-  // useEffect(() => {
-  //   api.get("/Vaccine/get-all")
-  //     .then(response => setVaccineList(response.data.$values || response.data))
-  //     .catch(error => console.error("API fetch error: ", error));
-  // }, []);
+  useEffect(() => {
+    api.get("/Vaccine/get-all")
+      .then(response => setVaccineList(response.data.$values || response.data))
+      .catch(error => console.error("API fetch error: ", error));
+  }, []);
 
   useEffect(() => {
     if (selectedDisease?.name) {
