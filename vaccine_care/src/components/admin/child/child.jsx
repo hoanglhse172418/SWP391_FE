@@ -19,7 +19,7 @@ const Child = () => {
             const formattedData = response.data.$values.map(child => ({
                 id: child.id,
                 name: child.childrenFullname,
-                dateOfBirth: new Date(child.dob).toLocaleDateString('en-US'),
+                dateOfBirth: new Date(child.dob).toLocaleDateString('vi-VN'),
                 gender: child.gender,
                 fatherName: child.fatherFullName,
                 motherName: child.motherFullName,
