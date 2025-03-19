@@ -29,10 +29,10 @@ const PaymentHistory = () => {
                 customerName: 'N/A',
                 childName: 'N/A',
                 amount: payment.totalPrice,
-                paymentMethod: payment.paymentMethod === 'Cash' ? 'Cash' : 
+                paymentMethod: payment.paymentMethod === 'Cash' ? 'Tiền mặt' : 
                               payment.paymentMethod === 'VNPay' ? 'VNPay' : 
-                              'Other',
-                status: payment.paymentStatus === 'Paid' ? 'Paid' : 'Unpaid',
+                              'Khác',
+                status: payment.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán',
                 type: payment.type,
                 packageStatus: payment.packageProcessStatus,
                 vaccines: vaccineNames
@@ -54,25 +54,25 @@ const PaymentHistory = () => {
 
   const columns = [
     {
-      title: 'Payment ID',
+      title: 'Mã thanh toán',
       dataIndex: 'id',
       key: 'id',
     },
     {
-      title: 'Type',
+      title: 'Loại',
       dataIndex: 'type',
       key: 'type',
       render: (type) => {
         if (!type) return null;
         
-        let displayText = 'Unknown';
+        let displayText = 'Không xác định';
         let color = 'default';
         
         if (type === 'Single') {
-          displayText = 'Single';
+          displayText = 'Đơn lẻ';
           color = 'blue';
         } else if (type === 'Package') {
-          displayText = 'Package';
+          displayText = 'Gói';
           color = 'purple';
         }
         
@@ -80,57 +80,57 @@ const PaymentHistory = () => {
       }
     },
     {
-      title: 'Vaccines',
+      title: 'Vắc xin',
       dataIndex: 'vaccines',
       key: 'vaccines',
       ellipsis: true,
     },
     {
-      title: 'Amount (VND)',
+      title: 'Số tiền (VNĐ)',
       dataIndex: 'amount',
       key: 'amount',
       render: (amount) => `${parseInt(amount).toLocaleString('vi-VN')} VNĐ`,
       sorter: (a, b) => a.amount - b.amount,
     },
     {
-      title: 'Payment Method',
+      title: 'Phương thức thanh toán',
       dataIndex: 'paymentMethod',
       key: 'paymentMethod',
       filters: [
-        { text: 'Cash', value: 'Cash' },
+        { text: 'Tiền mặt', value: 'Tiền mặt' },
         { text: 'VNPay', value: 'VNPay' },
-        { text: 'Other', value: 'Phương thức khác' },
+        { text: 'Khác', value: 'Khác' },
       ],
       onFilter: (value, record) => record.paymentMethod === value,
     },
     {
-      title: 'Payment Status',
+      title: 'Trạng thái thanh toán',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Paid' ? 'green' : 'red'}>
-          {status === 'Paid' ? 'Paid' : 'Unpaid'}
+        <Tag color={status === 'Đã thanh toán' ? 'green' : 'red'}>
+          {status}
         </Tag>
       ),
     },
     {
-      title: 'Package Status',
+      title: 'Trạng thái gói',
       dataIndex: 'packageStatus',
       key: 'packageStatus',
       render: (status) => {
         let color = 'orange';
-        let text = 'Incomplete';
+        let text = 'Chưa hoàn thành';
         
         if (status === 'Completed') {
           color = 'green';
-          text = 'Completed';
+          text = 'Đã hoàn thành';
         }
         
         return <Tag color={color}>{text}</Tag>;
       },
       filters: [
-        { text: 'Completed', value: 'Completed' },
-        { text: 'Incomplete', value: 'NotComplete' },
+        { text: 'Đã hoàn thành', value: 'Completed' },
+        { text: 'Chưa hoàn thành', value: 'NotComplete' },
       ],
       onFilter: (value, record) => record.packageStatus === value,
     },
@@ -163,7 +163,7 @@ const PaymentHistory = () => {
   return (
     <div className="admin">
       <div className="payment-history">
-        <h2 className="payment-history-title">Payment History</h2>
+        <h2 className="payment-history-title">Lịch sử thanh toán</h2>
         {loading ? (
           <div className="loading-container">
             <Spin size="large" />

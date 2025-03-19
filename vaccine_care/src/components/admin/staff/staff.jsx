@@ -151,7 +151,7 @@ const Staff = () => {
         
         try {
             await api.delete(`/User/delete?id=${userToDelete.id}`);
-            message.success(`Successfully deleted ${userToDelete.role === 'doctor' ? 'doctor' : 'staff member'}!`);
+            message.success(`Đã xóa ${userToDelete.role === 'doctor' ? 'bác sĩ' : 'nhân viên'} thành công!`);
             
             if (userToDelete.role === 'doctor') {
                 await fetchDoctors();
@@ -163,7 +163,7 @@ const Staff = () => {
             setUserToDelete(null);
         } catch (error) {
             console.error('Error deleting user:', error);
-            message.error('Unable to delete user. Please try again later!');
+            message.error('Không thể xóa người dùng. Vui lòng thử lại sau!');
         }
     };
 
@@ -172,19 +172,19 @@ const Staff = () => {
             <div className="staff-container">
                 <div className="staff-header">
                     <div className="staff-header-left">
-                        <h1 className="staff-title">Staff Management</h1>
+                        <h1 className="staff-title">Quản lý nhân viên</h1>
                         <div className="staff-tabs">
                             <button 
                                 className={`tab-button ${activeTab === 'staff' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('staff')}
                             >
-                                Staff List
+                                Danh sách nhân viên
                             </button>
                             <button 
                                 className={`tab-button ${activeTab === 'doctor' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('doctor')}
                             >
-                                Doctor List
+                                Danh sách bác sĩ
                             </button>
                         </div>
                     </div>
@@ -193,23 +193,23 @@ const Staff = () => {
                             className="create-account-btn doctor"
                             onClick={() => handleOpenModal('doctor')}
                         >
-                            Create Doctor Account
+                            Tạo tài khoản bác sĩ
                         </button>
                         <button 
                             className="create-account-btn staff"
                             onClick={() => handleOpenModal('staff')}
                         >
-                            Create Staff Account
+                            Tạo tài khoản nhân viên
                         </button>
                     </div>
                 </div>
                 
                 <div className="top-bar">
                     <select value={sortOption} onChange={handleSortChange} className="sort-dropdown">
-                        <option value="name">Sort by Name</option>
-                        <option value="id">Sort by ID</option>
-                        <option value="date">Sort by Date</option>
-                        <option value="status">Sort by Status</option>
+                        <option value="name">Sắp xếp theo tên</option>
+                        <option value="id">Sắp xếp theo ID</option>
+                        <option value="date">Sắp xếp theo ngày</option>
+                        <option value="status">Sắp xếp theo trạng thái</option>
                     </select>
                 </div>
 
@@ -218,13 +218,13 @@ const Staff = () => {
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Full Name</th>
-                                <th>Username</th>
+                                <th>Họ và tên</th>
+                                <th>Tên đăng nhập</th>
                                 <th>Email</th>
-                                <th>Role</th>
-                                <th>Created Date</th>
+                                <th>Vai trò</th>
+                                <th>Ngày tạo</th>
                                 {/* <th>Last Updated</th> */}
-                                <th>Actions</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -234,7 +234,7 @@ const Staff = () => {
                                     <td>{item.fullname}</td>
                                     <td>{item.username}</td>
                                     <td>{item.email}</td>
-                                    <td>{item.role === 'doctor' ? 'Doctor' : 'Staff'}</td>
+                                    <td>{item.role === 'doctor' ? 'Bác sĩ' : 'Nhân viên'}</td>
                                     <td>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</td>
                                     {/* <td>{new Date(item.updatedAt).toLocaleDateString('vi-VN')}</td> */}
                                     <td>
@@ -242,7 +242,7 @@ const Staff = () => {
                                             className="admin-delete-button" 
                                             onClick={() => showDeleteConfirm(item)}
                                         >
-                                            Delete
+                                            Xóa
                                         </button>
                                     </td>
                                 </tr>
@@ -257,14 +257,14 @@ const Staff = () => {
                         disabled={currentPage === 1} 
                         className="nav-button"
                     >
-                        ◀ Previous
+                        ◀ Trước
                     </button>
                     <button 
                         onClick={() => handlePageChange('next')} 
                         disabled={indexOfLastItem >= currentData.length} 
                         className="nav-button"
                     >
-                        Next ▶
+                        Tiếp ▶
                     </button>
                 </div>
 
@@ -276,20 +276,20 @@ const Staff = () => {
                 />
 
                 <Modal
-                    title="Confirm Delete"
+                    title="Xác nhận xóa"
                     open={deleteModalVisible}
                     onOk={handleDeleteUser}
                     onCancel={() => {
                         setDeleteModalVisible(false);
                         setUserToDelete(null);
                     }}
-                    okText="Delete"
-                    cancelText="Cancel"
+                    okText="Xóa"
+                    cancelText="Hủy"
                 >
                     <p>
-                        Are you sure you want to delete {userToDelete?.role === 'doctor' ? 'doctor' : 'staff member'} <strong>{userToDelete?.fullname || userToDelete?.username}</strong>?
+                        Bạn có chắc chắn muốn xóa {userToDelete?.role === 'doctor' ? 'bác sĩ' : 'nhân viên'} <strong>{userToDelete?.fullname || userToDelete?.username}</strong>?
                     </p>
-                    <p>This action cannot be undone.</p>
+                    <p>Hành động này không thể hoàn tác.</p>
                 </Modal>
             </div>
         </div>

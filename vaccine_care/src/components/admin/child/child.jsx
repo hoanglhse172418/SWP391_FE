@@ -20,7 +20,7 @@ const Child = () => {
                 id: child.id,
                 name: child.childrenFullname,
                 dateOfBirth: new Date(child.dob).toLocaleDateString('vi-VN'),
-                gender: child.gender,
+                gender: child.gender === 'Male' ? 'Nam' : 'Nữ',
                 fatherName: child.fatherFullName,
                 motherName: child.motherFullName,
                 fatherPhone: child.fatherPhoneNumber,
@@ -42,42 +42,42 @@ const Child = () => {
             key: 'id',
         },
         {
-            title: 'Full Name',
+            title: 'Họ và tên',
             dataIndex: 'name',
             key: 'name',
         },
         {
-            title: 'Date of Birth',
+            title: 'Ngày sinh',
             dataIndex: 'dateOfBirth',
             key: 'dateOfBirth',
         },
         {
-            title: 'Gender',
+            title: 'Giới tính',
             dataIndex: 'gender',
             key: 'gender',
         },
         {
-            title: "Father's Name",
+            title: "Tên cha",
             dataIndex: 'fatherName',
             key: 'fatherName',
         },
         {
-            title: "Father's Phone",
+            title: "Số điện thoại cha",
             dataIndex: 'fatherPhone',
             key: 'fatherPhone',
         },
         {
-            title: "Mother's Name",
+            title: "Tên mẹ",
             dataIndex: 'motherName',
             key: 'motherName',
         },
         {
-            title: "Mother's Phone",
+            title: "Số điện thoại mẹ",
             dataIndex: 'motherPhone',
             key: 'motherPhone',
         },
         {
-            title: 'Address',
+            title: 'Địa chỉ',
             dataIndex: 'address',
             key: 'address',
         },
@@ -86,7 +86,7 @@ const Child = () => {
     return (
         <div className="admin">
             <div className="child-management">
-                <h2 className="child-management-title">Child Management</h2>
+                <h2 className="child-management-title">Quản lý trẻ em</h2>
                 <Table 
                     columns={columns} 
                     dataSource={children}

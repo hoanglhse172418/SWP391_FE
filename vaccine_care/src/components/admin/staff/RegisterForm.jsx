@@ -8,23 +8,27 @@ const RegisterForm = ({ isOpen, onClose, type, onSubmit }) => {
         try {
             const values = await form.validateFields();
             await onSubmit(values);
-            message.success(`${type === 'doctor' ? 'Doctor' : 'Staff'} account created successfully`);
+            message.success(`${type === 'doctor' ? 'Bác sĩ' : 'Nhân viên'} đã được tạo thành công`);
             form.resetFields();
             onClose();
         } catch (error) {
             console.error('Error creating account:', error);
-            message.error('An error occurred while creating the account');
+            message.error('Đã xảy ra lỗi khi tạo tài khoản');
         }
     };
 
     return (
         <Modal
-            title={`Create ${type === 'doctor' ? 'Doctor' : 'Staff'} Account`}
+            title={`Tạo tài khoản ${type === 'doctor' ? 'Bác sĩ' : 'Nhân viên'}`}
             open={isOpen}
             onOk={handleSubmit}
             onCancel={onClose}
-            okText="Create"
-            cancelText="Cancel"
+            okText="Tạo"
+            cancelText="Hủy"
+            style={{ 
+                top: '20%',
+                transform: 'translateY(-20%)'
+            }}
         >
             <Form
                 form={form}
@@ -32,16 +36,16 @@ const RegisterForm = ({ isOpen, onClose, type, onSubmit }) => {
             >
                 <Form.Item
                     name="username"
-                    label="Username"
-                    rules={[{ required: true, message: 'Please enter username' }]}
+                    label="Tên đăng nhập"
+                    rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập' }]}
                 >
                     <Input />
                 </Form.Item>
 
                 <Form.Item
                     name="password"
-                    label="Password"
-                    rules={[{ required: true, message: 'Please enter password' }]}
+                    label="Mật khẩu"
+                    rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
                 >
                     <Input.Password />
                 </Form.Item>
@@ -50,8 +54,8 @@ const RegisterForm = ({ isOpen, onClose, type, onSubmit }) => {
                     name="email"
                     label="Email"
                     rules={[
-                        { required: true, message: 'Please enter email' },
-                        { type: 'email', message: 'Invalid email format' }
+                        { required: true, message: 'Vui lòng nhập email' },
+                        { type: 'email', message: 'Email không hợp lệ' }
                     ]}
                 >
                     <Input />

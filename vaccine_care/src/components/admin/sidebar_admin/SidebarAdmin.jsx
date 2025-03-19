@@ -23,43 +23,43 @@ const SidebarAdmin = ({ isCollapsed }) => {
                 <li>
                     <Link to="/admin/dashboard" className={location.pathname === '/admin/dashboard' ? 'active' : ''}>
                         <FaChartBar className="sidebar-icon" />
-                        {!isCollapsed && "Dashboard"}
+                        {!isCollapsed && "Bảng điều khiển"}
                     </Link>
                 </li>
                 <li>
                     <Link to="/admin/staff" className={location.pathname === '/admin/staff' ? 'active' : ''}>
                         <FaUsers className="sidebar-icon" />
-                        {!isCollapsed && "Staffs"}
+                        {!isCollapsed && "Nhân viên"}
                     </Link>
                 </li>
                 <li>
                     <Link to="/admin/vaccine" className={location.pathname === '/admin/vaccine' ? 'active' : ''}>
                         <FaSyringe className="sidebar-icon" />
-                        {!isCollapsed && "Vaccine"}
+                        {!isCollapsed && "Vắc xin"}
                     </Link>
                 </li>
                 <li>
                     <Link to="/admin/child" className={location.pathname === '/admin/child' ? 'active' : ''}>
                         <FaChild className="sidebar-icon" />
-                        {!isCollapsed && "Children"}
+                        {!isCollapsed && "Trẻ em"}
                     </Link>
                 </li>
                 <li>
                     <Link to="/admin/disease" className={location.pathname === '/admin/disease' ? 'active' : ''}>
                         <FaVirus className="sidebar-icon" />
-                        {!isCollapsed && "Diseases"}
+                        {!isCollapsed && "Bệnh"}
                     </Link>
                 </li>
                 <li>
                     <Link to="/admin/payment-history" className={location.pathname === '/admin/payment-history' ? 'active' : ''}>
                         <FaHistory className="sidebar-icon" />
-                        {!isCollapsed && "Payment History"}
+                        {!isCollapsed && "Lịch sử thanh toán"}
                     </Link>
                 </li>
                 <li className="logout-item">
                     <button onClick={handleLogout} className="logout-button">
                         <FaSignOutAlt className="sidebar-icon" />
-                        {!isCollapsed && "Logout"}
+                        {!isCollapsed && "Đăng xuất"}
                     </button>
                 </li>
             </ul>

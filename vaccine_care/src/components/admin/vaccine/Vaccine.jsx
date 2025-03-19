@@ -128,7 +128,7 @@ const Vaccine = () => {
       width: 70,
     },
     {
-      title: "Image",
+      title: "Hình ảnh",
       dataIndex: "imageUrl",
       key: "imageUrl",
       width: 120,
@@ -141,19 +141,19 @@ const Vaccine = () => {
       ),
     },
     {
-      title: "Vaccine Name",
+      title: "Tên vắc xin",
       dataIndex: "name",
       key: "name",
       width: 150,
     },
     {
-      title: "Manufacturer",
+      title: "Nhà sản xuất",
       dataIndex: "manufacture",
       key: "manufacture",
       width: 120,
     },
     {
-      title: "Description",
+      title: "Mô tả",
       dataIndex: "description",
       key: "description",
       width: 300,
@@ -167,39 +167,31 @@ const Vaccine = () => {
         </Tooltip>
       ),
     },
-    // {
-    //     title: 'Age Range (years)',
-    //     key: 'age',
-    //     width: 150,
-    //     render: (_, record) => (
-    //         `${record.recAgeStart} - ${record.recAgeEnd}`
-    //     ),
-    // },
     {
-      title: "Quantity",
+      title: "Số lượng",
       dataIndex: "inStockNumber",
       key: "inStockNumber",
       width: 100,
     },
     {
-      title: "Price (VND)",
+      title: "Giá (VNĐ)",
       dataIndex: "price",
       key: "price",
       width: 120,
     },
     {
-      title: "Status",
+      title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       width: 120,
       render: (status) => (
         <Tag color={status === "Còn hàng" ? "green" : "red"}>
-          {status === "Còn hàng" ? "In Stock" : "Out of Stock"}
+          {status}
         </Tag>
       ),
     },
     {
-      title: "Actions",
+      title: "Thao tác",
       key: "action",
       width: 120,
       render: (_, record) => (
@@ -221,7 +213,7 @@ const Vaccine = () => {
             setIsUpdateModalVisible(true);
           }}
         >
-          Update
+          Cập nhật
         </Button>
       ),
     },
@@ -235,41 +227,41 @@ const Vaccine = () => {
       width: 70,
     },
     {
-      title: "Package Name",
+      title: "Tên gói",
       dataIndex: "name",
       key: "name",
       width: 200,
     },
     {
-      title: "Vaccine Count",
+      title: "Số lượng vắc xin",
       dataIndex: "vaccineCount",
       key: "vaccineCount",
       width: 150,
     },
     {
-      title: "Total Price (VND)",
+      title: "Tổng giá (VNĐ)",
       dataIndex: "totalPrice",
       key: "totalPrice",
       width: 150,
       render: (price) => price.toLocaleString("vi-VN"),
     },
     {
-      title: "Created Date",
+      title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       width: 120,
     },
     {
-      title: "Status",
+      title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       width: 120,
       render: (status) => (
-        <Tag color={status === "Active" ? "green" : "red"}>{status}</Tag>
+        <Tag color={status === "Active" ? "green" : "red"}>{status === "Active" ? "Đang hoạt động" : "Không hoạt động"}</Tag>
       ),
     },
     {
-      title: "Actions",
+      title: "Thao tác",
       key: "action",
       render: (_, record) => (
         <Button
@@ -277,7 +269,7 @@ const Vaccine = () => {
           type="primary"
           onClick={() => showDeleteConfirm(record.id)}
         >
-          Delete
+          Xóa
         </Button>
       ),
     },
@@ -311,17 +303,17 @@ const Vaccine = () => {
         width: 70,
       },
       {
-        title: "Vaccine Name",
+        title: "Tên vắc xin",
         dataIndex: "vaccineName",
         key: "name",
       },
       {
-        title: "Dose Number",
+        title: "Số liều",
         dataIndex: "doseNumber",
         key: "doseNumber",
       },
       {
-        title: "Price per Dose (VND)",
+        title: "Giá mỗi liều (VNĐ)",
         dataIndex: "pricePerDose",
         key: "price",
         render: (price) => price.toLocaleString("vi-VN"),
@@ -497,15 +489,15 @@ const Vaccine = () => {
       <div className="admin">
         <div className="admin-vaccine-container">
           <div className="admin-vaccine-header">
-            <h2 className="admin-vaccine-title">Vaccine Management</h2>
+            <h2 className="admin-vaccine-title">Quản lý vắc xin</h2>
             <div className="admin-vaccine-controls">
               <Radio.Group
                 value={activeTab}
                 onChange={handleTabChange}
                 className="admin-vaccine-tabs"
               >
-                <Radio.Button value="vaccine">Vaccine</Radio.Button>
-                <Radio.Button value="package">Vaccine Package</Radio.Button>
+                <Radio.Button value="vaccine">Vắc xin</Radio.Button>
+                <Radio.Button value="package">Gói vắc xin</Radio.Button>
               </Radio.Group>
               {activeTab === "vaccine" ? (
                 <Button
@@ -513,7 +505,7 @@ const Vaccine = () => {
                   onClick={() => setIsCreateVaccineModalVisible(true)}
                   style={{ marginLeft: "16px" }}
                 >
-                  Create New Vaccine
+                  Thêm vắc xin mới
                 </Button>
               ) : (
                 <Button
@@ -521,7 +513,7 @@ const Vaccine = () => {
                   onClick={() => setIsCreateModalVisible(true)}
                   style={{ marginLeft: "16px" }}
                 >
-                  Create New Vaccine Package
+                  Thêm gói vắc xin mới
                 </Button>
               )}
             </div>
