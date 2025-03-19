@@ -661,7 +661,9 @@ const Inject = ({ record }) => {
                 </button>
               </div>
             </div>
-            {appointment.vaccineType !== "Single" && (
+            {appointment.vaccineType !== "Single" && 
+              vaccineData.length > 0 &&
+              !vaccineData.every((item) => item.status === "Completed") &&(
               <div className="modal-tabel-2">
                 <div className="modal-pkg">
                   <p>
