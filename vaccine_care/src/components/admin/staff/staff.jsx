@@ -235,8 +235,8 @@ const Staff = () => {
                                     <td>{item.username}</td>
                                     <td>{item.email}</td>
                                     <td>{item.role === 'doctor' ? 'Doctor' : 'Staff'}</td>
-                                    <td>{new Date(item.createdAt).toLocaleString('en-US')}</td>
-                                    <td>{new Date(item.updatedAt).toLocaleString('en-US')}</td>
+                                    <td>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</td>
+                                    <td>{new Date(item.updatedAt).toLocaleDateString('vi-VN')}</td>
                                     <td>
                                         <button 
                                             className="admin-delete-button" 
