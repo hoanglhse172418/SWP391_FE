@@ -14,6 +14,46 @@ function CusPaymentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cashPaymentStatus, setCashPaymentStatus] = useState('initial'); // 'initial', 'processing', 'success'
+  const location = useLocation();
+
+  // Kiểm tra kết quả thanh toán VNPay khi quay lại
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const vnpayStatus = urlParams.get('vnp_ResponseCode');
+    
+    if (vnpayStatus && appointmentDetails?.id) {
+      api.get('/VNPay/ReturnUrl' + window.location.search, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(async response => {
+        if (vnpayStatus === '00') {
+          try {
+            // Sửa cách gọi API - truyền trực tiếp vào URL
+            await api.put(
+              `/Payment/update-status-payment-status/confirm-payment?appointmentId=${appointmentDetails.id}&paymentMethod=VNPay`,
+              null,
+              {
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            );
+            
+            console.log("Cập nhật trạng thái thanh toán thành công");
+            navigate('/paymentss');
+          } catch (error) {
+            console.error('Lỗi khi cập nhật trạng thái thanh toán:', error);
+            console.log('appointmentId:', appointmentDetails.id);
+            navigate('/paymentFaild');
+          }
+        } else {
+          navigate('/paymentFaild');
+        }
+      })
+      .catch(error => {
+        console.error('Lỗi khi kiểm tra kết quả thanh toán:', error);
+        navigate('/paymentFaild');
+      });
+    }
+  }, [navigate, token, appointmentDetails]);
 
   // Xử lý thanh toán tiền mặt
   const handleCashPayment = () => {
@@ -31,6 +71,11 @@ function CusPaymentPage() {
   // Xử lý thanh toán VNPay
   const handleVNPayPayment = async () => {
     try {
+      // Lưu appointmentId vào sessionStorage để sử dụng khi callback
+      if (appointmentDetails?.id) {
+        sessionStorage.setItem('currentAppointmentId', appointmentDetails.id);
+      }
+      
       const response = await api.get(`/VNPay/CreatePaymentUrl?PaymentId=${paymentDetails?.paymentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -45,45 +90,13 @@ function CusPaymentPage() {
     }
   };
 
-  // Kiểm tra kết quả thanh toán VNPay khi quay lại
+  // Fetch payment and appointment details
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const vnpayStatus = urlParams.get('vnp_ResponseCode');
-    
-    if (vnpayStatus) {
-      api.get('/VNPay/ReturnUrl' + window.location.search, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(async response => {
-        if (vnpayStatus === '00') {
-          // Sửa lại cách gửi parameters
-          try {
-            const params = new URLSearchParams({
-              appointmentID: appointmentDetails?.id,
-              PaymentMethod: 'VNPay'
-            });
-            
-            await api.post(`/Payment/update-status-payment-status/step-3-to-4?${params}`, null, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-            
-            navigate('/paymentss'); // Chuyển đến trang thanh toán thành công
-          } catch (error) {
-            console.error('Lỗi khi cập nhật trạng thái thanh toán:', error);
-            navigate('/paymentFaild');
-          }
-        } else {
-          navigate('/paymentFaild');
-        }
-      })
-      .catch(error => {
-        console.error('Lỗi khi kiểm tra kết quả thanh toán:', error);
-        navigate('/paymentFaild');
-      });
+    // Nếu đang xử lý VNPay return URL, không fetch dữ liệu
+    if (location.search && location.search.includes('vnp_ResponseCode')) {
+      return;
     }
-  }, [navigate, token, appointmentDetails]);
-
-  useEffect(() => {
+    
     const fetchDetails = async () => {
       try {
         // Fetch payment details
@@ -130,7 +143,7 @@ function CusPaymentPage() {
     if (paymentId && token) {
       fetchDetails();
     }
-  }, [paymentId, token]);
+  }, [paymentId, token, location.search]);
 
   const getStatusBadgeClass = (status) => {
     switch(status?.toLowerCase()) {

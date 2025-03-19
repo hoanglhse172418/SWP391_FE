@@ -3,10 +3,31 @@ import './header.css';
 import logo from '../../../assets/logo_vaccine.png'; // Adjust the path as necessary
 import profileImage from '../../../assets/cat.jpg'; // Ensure this path is correct
 import { IoMenuOutline } from "react-icons/io5"; // Import icon
+import axios from 'axios';
+import { Spin } from 'antd';
+
+const API_BASE_URL = 'https://vaccinecare.azurewebsites.net/api';
 
 const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
     const [showModal, setShowModal] = useState(false);
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
     const modalRef = useRef(null);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/User/get/1`);
+                setUserData(response.data);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -20,6 +41,12 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    // Format date function
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleString();
+    };
 
     return (
         <div className="admin-header">
@@ -47,28 +74,40 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
             {showModal && (
                 <div className="admin-profile-modal-overlay">
                     <div className="admin-profile-modal" ref={modalRef}>
-                        <div className="admin-profile-modal-header">
-                            <img src={profileImage} alt="Profile" className="admin-modal-profile-img" />
-                            <h2>Account Information</h2>
-                        </div>
-                        <div className="admin-profile-modal-content">
-                            <div className="admin-info-item">
-                                <strong>Full Name:</strong>
-                                <span>John Doe</span>
+                        {loading ? (
+                            <div className="admin-loading-container">
+                                <Spin size="large" />
                             </div>
-                            <div className="admin-info-item">
-                                <strong>Email:</strong>
-                                <span>john.doe@example.com</span>
-                            </div>
-                            <div className="admin-info-item">
-                                <strong>Phone Number:</strong>
-                                <span>0123456789</span>
-                            </div>
-                            <div className="admin-info-item">
-                                <strong>Address:</strong>
-                                <span>123 ABC Street, District 1, Ho Chi Minh City</span>
-                            </div>
-                        </div>
+                        ) : (
+                            <>
+                                <div className="admin-profile-modal-header">
+                                    <img src={profileImage} alt="Profile" className="admin-modal-profile-img" />
+                                    <h2>Account Information</h2>
+                                </div>
+                                <div className="admin-profile-modal-content">
+                                    <div className="admin-info-item">
+                                        <strong>Email:</strong>
+                                        <span>{userData?.email || 'N/A'}</span>
+                                    </div>
+                                    <div className="admin-info-item">
+                                        <strong>Role:</strong>
+                                        <span>{userData?.role ? userData.role.charAt(0).toUpperCase() + userData.role.slice(1) : 'N/A'}</span>
+                                    </div>
+                                    <div className="admin-info-item">
+                                        <strong>Created At:</strong>
+                                        <span>{formatDate(userData?.createdAt)}</span>
+                                    </div>
+                                    <div className="admin-info-item">
+                                        <strong>Last Login:</strong>
+                                        <span>{formatDate(userData?.lastLogin)}</span>
+                                    </div>
+                                    <div className="admin-info-item">
+                                        <strong>Last Updated:</strong>
+                                        <span>{formatDate(userData?.updatedAt)}</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
