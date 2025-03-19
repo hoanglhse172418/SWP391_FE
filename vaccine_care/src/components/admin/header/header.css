@@ -261,3 +261,11 @@
         opacity: 1;
     }
 }
+
+.admin-loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    width: 100%;
+}

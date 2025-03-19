@@ -28,7 +28,8 @@ function BillPage() {
         const data = response.data.$values;
         // Sắp xếp payments theo paymentId giảm dần (mới nhất lên đầu)
         const sortedData = [...data].sort((a, b) => {
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          // Sắp xếp theo paymentId giảm dần (cao nhất lên đầu)
+          return b.paymentId - a.paymentId;
         });
         setPayments(sortedData);
       })
