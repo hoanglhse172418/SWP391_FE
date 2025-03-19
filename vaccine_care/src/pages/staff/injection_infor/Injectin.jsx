@@ -97,11 +97,11 @@ const Injection = () => {
       setAppointmentDetails(details); // Lưu dữ liệu chi tiết
 
       // // Kiểm tra processStep từ API có đúng không
-      // if (details.processStep) {
-      //   console.log("processStep từ API:", details.processStep);
-      // } else {
-      //   console.log("API không trả về processStep!");
-      // }
+      if (details.processStep) {
+        console.log("processStep từ API:", details.processStep);
+      } else {
+        console.log("API không trả về processStep!");
+      }
 
       // Chỉ cập nhật currentStep nếu có giá trị hợp lệ
       if (

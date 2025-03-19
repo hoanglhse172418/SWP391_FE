@@ -106,19 +106,40 @@ const Inject = ({ record }) => {
     fetchVaccinationProfile();
   }, [childId]);
 
+  const fetchUpdatedVaccinationRecords = async () => {
+    if (!vaccinationProfileId) return;
+
+    try {
+      const response = await api.get(
+        `/VaccinationDetail/get-all?FilterOn=vaccinationProfileId&FilterQuery=${vaccinationProfileId}&PageSize=100`
+      );
+
+      const records = response.data.$values || [];
+      console.log("Updated Vaccine Profile: ", records);
+
+      setVaccinationRecords(records); // Cập nhật UI ngay lập tức
+    } catch (error) {
+      console.error("Lỗi khi tải lại dữ liệu vaccine:", error);
+    }
+  };
+
   useEffect(() => {
+    // if (vaccinationProfileId) {
+    //   api
+    //     .get(
+    //       `/VaccinationDetail/get-all?FilterOn=vaccinationProfileId&FilterQuery=${vaccinationProfileId}&PageSize=100`
+    //     )
+    //     .then((response) => {
+    //       const records = response.data.$values || [];
+    //       console.log("Vaccine Profile: ", records);
+    //       setVaccinationRecords(records);
+    //     })
+    //     .catch((error) =>
+    //       console.error("Error fetching vaccination data:", error)
+    //     );
+    // }
     if (vaccinationProfileId) {
-      api
-        .get(
-          `/VaccinationDetail/get-all?FilterOn=vaccinationProfileId&FilterQuery=${vaccinationProfileId}&PageSize=100`
-        )
-        .then((response) => {
-          const records = response.data.$values || [];
-          setVaccinationRecords(records);
-        })
-        .catch((error) =>
-          console.error("Error fetching vaccination data:", error)
-        );
+      fetchUpdatedVaccinationRecords();
     }
   }, [vaccinationProfileId]);
 
@@ -230,7 +251,12 @@ const Inject = ({ record }) => {
 
   const getVaccineName = (vaccineId) => {
     const vaccine = vaccineList.find((v) => v.id === vaccineId);
-    return vaccine ? vaccine.name : "Không xác định";
+    return vaccine ? vaccine.name : "";
+  };
+
+  const getDiseaseName = (diseaseId) => {
+    const disease = diseases.find((v) => v.id === diseaseId);
+    return disease ? disease.name : "";
   };
 
   //Vaccine
@@ -381,22 +407,31 @@ const Inject = ({ record }) => {
 
   //Handle Confirm
   const handleConfirmInjection = async () => {
-    if (!appointment) return;
+    if (!appointment || !vaccinationProfileId) return;
+    console.log("ProfileId:", vaccinationProfileId);
+    console.log("VaccineId:", appointment.vaccineId);
 
     setConfirming(true);
     try {
       await api.put(
         `/Appointment/confirm-injection-by-doctor/${appointment.id}`
       );
+      await api.put(`/VaccinationDetail/update-vaccine-for-doctor`, null, {
+        params: {
+          ProfileId: vaccinationProfileId, // ID hồ sơ tiêm chủng
+          vaccineId: appointment.vaccineId, // ID vaccine
+        },
+      });
       notification.success({
         message: "Xác nhận thành công",
       });
+
       setAppointment({ ...appointment, confirmed: true }); // Cập nhật UI sau khi xác nhận
+      fetchUpdatedVaccinationRecords();
     } catch (err) {
       notification.error({
         message:
-          "Lỗi xác nhận tiêm: " +
-          (err.response ? err.response.data.message : err.message),
+          "Lỗi: " + (err.response ? err.response.data.message : err.message),
       });
     } finally {
       setConfirming(false);
@@ -536,14 +571,14 @@ const Inject = ({ record }) => {
           </table>
 
           <div className="VaccinPage-flex">
-            {/* <button
+            <button
               type="submit"
               className="button-update-inject"
               onClick={() => setShowModal2(true)}
             >
               Điều chỉnh mũi tiêm
-            </button> */}
-            <button
+            </button>
+            {/* <button
               type="submit"
               className={`button-update-inject ${
                 appointment.vaccineType === "Single"
@@ -554,11 +589,11 @@ const Inject = ({ record }) => {
               disabled={appointment.vaccineType === "Single"} // Disable khi là Single
             >
               Điều chỉnh mũi tiêm
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
-      {showModal && (
+      {/* {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h4>
@@ -625,33 +660,54 @@ const Inject = ({ record }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {showModal2 && (
         <div className="modal-overlay-2">
           <div className="modal-content-2">
             <div className="modal-pkg">
               <p>
-                <strong>Gói đã mua:</strong> {appointment.vaccinePackageName}
+                <strong>Dự kiến tiêm</strong>
               </p>
             </div>
             <div className="modal-table-container">
               <table className="modal-table">
                 <thead>
                   <tr>
+                    <th>Số</th>
+                    <th>Bệnh</th>
                     <th>Mũi tiêm</th>
+                    <th>Ngày dự kiến tiêm</th>
                     <th>Ngày tiêm</th>
+                    <th>Vắc xin</th>
                     <th>Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {vaccineData.map((item, index) => (
+                  {vaccinationRecords.map((item, index) => (
                     <tr key={index}>
+                      <td>{index}</td>
                       <td>
-                        {`Mũi ${index + 1}:`} {getVaccineName(item.vaccineId)}
+                        {/* {`Mũi ${index + 1}:`} {getVaccineName(item.vaccineId)} */}
+                        {getDiseaseName(item.diseaseId)}
                       </td>
-                      {/* <td>{item.dateInjection || "Chưa có lịch"}</td> */}
+                      <td></td>
                       <td>
+                        {new Date(
+                          item.expectedInjectionDate
+                        ).toLocaleDateString("vi-VN")}
+                      </td>
+                      <td>
+                        {item.actualInjectionDate
+                          ? new Date(
+                              item.actualInjectionDate
+                            ).toLocaleDateString("vi-VN")
+                          : ""}
+                      </td>
+                      <td>{getVaccineName(item.vaccineId) || ""}</td>
+
+                      {/* <td>{item.dateInjection || "Chưa có lịch"}</td> */}
+                      {/* <td>
                         {editingId === item.appointmentId &&
                         item.status !== "Completed" ? (
                           <input
@@ -695,7 +751,7 @@ const Inject = ({ record }) => {
                         className={`modal-status-${item.status.toLowerCase()}`}
                       >
                         {getStatusText(item.status)}
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>
