@@ -7,7 +7,7 @@ const Disease = () => {
     const [diseases, setDiseases] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const getAllDiseases = () => api.get('/Disease/get-all');
+    const getAllDiseases = () => api.get('/Disease/get-all?PageSize=30');
 
     useEffect(() => {
         fetchDiseases();
