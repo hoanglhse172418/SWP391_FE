@@ -598,73 +598,57 @@ const Inject = ({ record }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {vaccinationRecords
-                      .sort((a, b) => a.diseaseId - b.diseaseId)
-                      .map((item, index) => (
-                        <tr key={index}>
-                          <td>{getDiseaseName(item.diseaseId)}</td>
-                          <td></td>
+                    {(() => {
+                      let doseCount = {}; // Lưu số lần xuất hiện của vaccineId theo bệnh
 
-                          <td>
-                            {item.vaccineId ? ( // Nếu đã tiêm thì chỉ hiển thị, không cho sửa
-                              <span>
+                      return vaccinationRecords
+                        .sort((a, b) => a.diseaseId - b.diseaseId) // Sắp xếp theo diseaseId
+                        .map((item, index) => {
+                          // Nếu vaccineId đã tồn tại trong doseCount, tăng số thứ tự
+                          if (!doseCount[item.diseaseId]) {
+                            doseCount[item.diseaseId] = 1;
+                          } else {
+                            doseCount[item.diseaseId]++;
+                          }
+
+                          return (
+                            <tr key={index}>
+                              <td>{getDiseaseName(item.diseaseId)}</td>
+
+                              {/* Gán đúng mũi tiêm theo thứ tự */}
+                              <td>Tiêm mũi {doseCount[item.diseaseId]}</td>
+
+                              <td>
                                 {item.expectedInjectionDate
                                   ? new Date(
                                       item.expectedInjectionDate
                                     ).toLocaleDateString("vi-VN")
                                   : "Chưa có lịch"}
-                              </span>
-                            ) : editingId === item.id ? (
-                              <input
-                                type="date"
-                                className="modal-input-date"
-                                value={editingDate[item.id] || ""}
-                                onChange={(e) =>
-                                  setEditingDate({
-                                    ...editingDate,
-                                    [item.id]: e.target.value,
-                                  })
+                              </td>
+
+                              <td>
+                                {item.actualInjectionDate
+                                  ? new Date(
+                                      item.actualInjectionDate
+                                    ).toLocaleDateString("vi-VN")
+                                  : ""}
+                              </td>
+
+                              <td>{getVaccineName(item.vaccineId) || ""}</td>
+
+                              <td
+                                className={
+                                  item.vaccineId
+                                    ? "status-datiem"
+                                    : "status-chuatiem"
                                 }
-                                onBlur={() => setEditingId(null)}
-                                autoFocus
-                              />
-                            ) : (
-                              <span
-                                onClick={() =>
-                                  handleEditDateExpectedDate(
-                                    item.id,
-                                    item.expectedInjectionDate
-                                  )
-                                }
-                                style={{ cursor: "pointer" }}
                               >
-                                {item.expectedInjectionDate
-                                  ? new Date(
-                                      item.expectedInjectionDate
-                                    ).toLocaleDateString("vi-VN")
-                                  : "Chưa có lịch"}
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            {item.actualInjectionDate
-                              ? new Date(
-                                  item.actualInjectionDate
-                                ).toLocaleDateString("vi-VN")
-                              : ""}
-                          </td>
-                          <td>{getVaccineName(item.vaccineId) || ""}</td>
-                          <td
-                            className={
-                              item.vaccineId
-                                ? "status-datiem"
-                                : "status-chuatiem"
-                            }
-                          >
-                            {item.vaccineId ? "Đã tiêm" : "Chưa tiêm"}
-                          </td>
-                        </tr>
-                      ))}
+                                {item.vaccineId ? "Đã tiêm" : "Chưa tiêm"}
+                              </td>
+                            </tr>
+                          );
+                        });
+                    })()}
                   </tbody>
                 </table>
               </div>

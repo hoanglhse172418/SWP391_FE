@@ -127,14 +127,14 @@ const Inject_infor = () => {
             id: item.id,
             fullname:
               childrenMap[item.childrenId] ||
-              `Chưa cập nhật (ID: ${item.childrenId})`,
+              " ",
             date: item.dateInjection
               ? new Date(item.dateInjection).toLocaleDateString()
-              : "Chưa cập nhật",
+              : "",
             vaccine:
               vaccineMap[item.vaccineId] ||
-              `Chưa cập nhật (ID: ${item.vaccineId})`,
-            vaccinePackage: vaccinePackageMap[item.vaccinePackageId] || "N/A",
+              " ",
+            vaccinePackage: vaccinePackageMap[item.vaccinePackageId] || "__________",
             status: item.processStep || "Không xác định",
           }));
 
