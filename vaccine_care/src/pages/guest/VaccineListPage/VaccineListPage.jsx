@@ -111,6 +111,9 @@ function VaccineListPage() {
   const [selectedVaccine, setSelectedVaccine] = useState(null);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVaccineModalOpen, setIsVaccineModalOpen] = useState(false);
+const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+
 
   useEffect(() => {
     fetchVaccines();
@@ -155,17 +158,29 @@ function VaccineListPage() {
     }
   };
 
+  
   const handleShowVaccineDetails = (vaccine) => {
     setSelectedVaccine(vaccine);
     setSelectedPackage(null); // Reset package khi chọn vaccine lẻ
-    setIsModalOpen(true);
+    setIsVaccineModalOpen(true); // Mở modal vaccine lẻ
   };
-
+  
   const handleShowPackageDetails = (pkg) => {
     setSelectedPackage(pkg);
     setSelectedVaccine(null); // Reset vaccine khi chọn package
-    setIsModalOpen(true);
+    setIsPackageModalOpen(true); // Mở modal gói vaccine
   };
+  
+  const handleCloseVaccineModal = () => {
+    setSelectedVaccine(null);
+    setIsVaccineModalOpen(false);
+  };
+  
+  const handleClosePackageModal = () => {
+    setSelectedPackage(null);
+    setIsPackageModalOpen(false);
+  };
+  
 
   const handleCloseModal = () => {
     setSelectedVaccine(null);
@@ -173,6 +188,7 @@ function VaccineListPage() {
     setIsModalOpen(false);
   };
 
+  
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -245,13 +261,13 @@ function VaccineListPage() {
       </Tabs>
 
       {/* Modal hiển thị chi tiết vaccine hoặc package */}
-  <Modal
+      <Modal
   title={selectedPackage?.name}
-  open={isModalOpen}
-  onCancel={handleCloseModal}
+  open={isPackageModalOpen}
+  onCancel={handleClosePackageModal}
   footer={null}
 >
-  {selectedPackage && (
+  {selectedPackage ? (
     <div>
       <p><strong>Gói:</strong> {selectedPackage.name}</p>
       <p><strong>Giá:</strong> {selectedPackage.price ? selectedPackage.price.toLocaleString() : "Chưa có giá"} VND</p>
@@ -259,7 +275,7 @@ function VaccineListPage() {
       <ul>
         {selectedPackage.vaccinePackageItems?.$values?.map((item, index) => (
           <li key={index}>
-            {item.vaccineName} - Mũi {item.doseNumber}
+            {item.vaccineName} - 1 Mũi 
           </li>
         )) ?? <p>Không có dữ liệu vắc xin</p>}
       </ul>
@@ -277,8 +293,47 @@ function VaccineListPage() {
         Lưu ý: Tổng Giá trị Gói vắc xin = Tổng giá trị các mũi tiêm lẻ + Khoảng 10% phí đặt giữ theo yêu cầu*
       </div>
     </div>
+  ) : (
+    <p>Lỗi khi tải dữ liệu.</p>
   )}
 </Modal>
+
+
+
+{/* Modal hiển thị chi tiết vaccine lẻ */}
+<Modal
+  title={selectedVaccine?.name}
+  open={isVaccineModalOpen}
+  onCancel={handleCloseVaccineModal}
+  footer={null}
+>
+  {selectedVaccine ? (
+    <div className="modal-container">
+      <img
+        src={selectedVaccine.imageUrl}
+        alt={selectedVaccine.name}
+        className="modal-image"
+      />
+
+      <div className="modal-vaccine-content">
+        <h2>{selectedVaccine.name}</h2>
+        <p><strong>Nhà sản xuất:</strong> {selectedVaccine.manufacture}</p>
+        <p><strong>Mô tả:</strong> {selectedVaccine.description}</p>
+        <p><strong>Số lượng tồn kho:</strong> {selectedVaccine.inStockNumber}</p>
+        <p><strong>Ghi chú:</strong> {selectedVaccine.notes}</p>
+        <p><strong>Giá:</strong> {selectedVaccine.price?.toLocaleString()} VND</p>
+        <p className={`status ${selectedVaccine.inStockNumber <= 0 ? "out-of-stock" : "in-stock"}`}>
+          {selectedVaccine.inStockNumber <= 0 ? "Hết hàng" : "Còn hàng"}
+        </p>
+      </div>
+    </div>
+  ) : (
+    <p>Lỗi khi tải dữ liệu.</p>
+  )}
+</Modal>
+
+
+
     </div>
   );
 }
