@@ -57,20 +57,12 @@ const App = () => {
         <Route path={PATH_NAME.NEWLDETAIL} element={<NewsDetail />} />
         <Route path={PATH_NAME.REGISTER} element={<RegisterPage />} />
         <Route path={PATH_NAME.LOGIN} element={<LoginPage />} />
-        <Route
-          path={PATH_NAME.FORGOTPASSWORD}
-          element={<ForgotPasswordPage />}
-        />
+        <Route path={PATH_NAME.FORGOTPASSWORD} element={<ForgotPasswordPage />}/>
         <Route path={PATH_NAME.REPASSWORD} element={<ResetPasswordPage />} />
         <Route path={PATH_NAME.ABOUT_US} element={<AboutPage />} />
         <Route path={PATH_NAME.VACCINE_PRICE} element={<VaccinePrice />} />
         <Route path={PATH_NAME.CAM_NANG} element={<CamNangPage />} />
-        <Route
-          path={PATH_NAME.IN4}
-          element={
-            <PrivateRoute element={<ProfilePage />} allowedRoles={["user"]} />
-          }
-        />
+        <Route path={PATH_NAME.IN4} element={<PrivateRoute element={<ProfilePage />} allowedRoles={["user"]} />}/>
         <Route
           path={PATH_NAME.BOOKING}
           element={

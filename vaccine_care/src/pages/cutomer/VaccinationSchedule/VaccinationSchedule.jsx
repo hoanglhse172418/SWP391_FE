@@ -48,38 +48,6 @@ useEffect(() => {
   }
 }, [vaccinationProfileId]);
 
-
-// const handleBooking = () => {
-//   if (!selectedDisease || !selectedMonth) {
-//     setNotification({ message: "Vui lòng chọn một bệnh và tháng!", type: "error" });
-//     return;
-//   }
-
-//   let expectedDate = "";
-//   const vaccineInfo = highlightedVaccines[selectedMonth]?.find(v => v.diseaseId === selectedDisease.id);
-
-//   if (vaccineInfo?.expectedInjectionDate) {
-//     try {
-//       expectedDate = new Date(vaccineInfo.expectedInjectionDate).toISOString().split("T")[0];
-//     } catch (error) {
-//       console.error("Lỗi chuyển đổi ngày dự kiến:", error);
-//     }
-//   } else {
-//     console.warn("Không tìm thấy ngày dự kiến trong VaccineTemplate!");
-//   }
-
-//   console.log("Ngày dự kiến gửi qua BookingPage:", expectedDate);
-
-//   navigate(`/booking`, { 
-//     state: {
-//       childId: id, 
-//       diseaseId: selectedDisease.id,
-//       diseaseName: selectedDisease.name,
-//       expectedInjectionDate: expectedDate || "",
-//     },
-//   });
-// };
-
 const handleBooking = () => {
   if (!selectedDisease || !selectedMonth) {
     setNotification({ message: "Vui lòng chọn một bệnh và tháng!", type: "error" });
@@ -116,20 +84,26 @@ const handleBooking = () => {
   });
 };
 
-
-
-
   useEffect(() => {
     api.get("/Disease/get-all?PageSize=30")
       .then(response => setDiseases(response.data.$values || response.data))
       .catch(error => console.error("API fetch error: ", error));
   }, []);
 
+  // useEffect(() => {
+  //   api.get("/Vaccine/get-all")
+  //     .then(response => setVaccineList(response.data.$values || response.data))
+  //     .catch(error => console.error("API fetch error: ", error));
+  // }, []);
+
   useEffect(() => {
-    api.get("/Vaccine/get-all")
-      .then(response => setVaccineList(response.data.$values || response.data))
-      .catch(error => console.error("API fetch error: ", error));
-  }, []);
+    if (selectedDisease?.name) {
+      api.get(`/Vaccine/get-vaccines-by-diasease-name/${selectedDisease.name}`)
+        .then(response => setVaccineList(response.data.$values || response.data))
+        .catch(error => console.error("API fetch error: ", error));
+    }
+  }, [selectedDisease]);
+  
   
   const handleCellClick = (disease, month) => {
     setSelectedDisease(disease);
