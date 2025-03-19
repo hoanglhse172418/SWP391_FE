@@ -172,7 +172,55 @@ const Inject = ({ record }) => {
     }
     setEditingId(appointmentId);
   };
-
+  const handleSave = async () => {
+    if (!selectedVaccine || !selectedDisease || !selectedMonth || !vaccinationProfileId) {
+      
+      return;
+    }
+  
+    const vaccineId = vaccineList.find(v => v.name === selectedVaccine)?.id;
+    if (!vaccineId) {
+      
+      return;
+    }
+  
+    const existingRecord = vaccinationRecords.find(
+      record => record.diseaseId === selectedDisease.id && record.month === selectedMonth
+    );
+  
+    const updateRecord = {
+      vaccineId: vaccineId,
+      month: selectedMonth,
+    };
+  
+    if (existingRecord) {
+      // Nếu đã có bản ghi, tiến hành cập nhật
+      try {
+        const response = await api.put(`/VaccinationDetail/update/${existingRecord.id}`, updateRecord);
+        if (response.status === 200 || response.status === 204) {
+          console.log("✅ Cập nhật thành công:", response.data);
+          
+  
+          // Cập nhật state mà không cần reload toàn bộ trang
+          setVaccinationRecords(prev =>
+            prev.map(record =>
+              record.id === existingRecord.id ? { ...record, vaccineId, month: selectedMonth } : record
+            )
+          );
+        } else {
+          console.warn("⚠️ Cập nhật thất bại:", response);
+          
+        }
+      } catch (error) {
+        console.error("❌ Lỗi khi cập nhật:", error);
+        
+      }
+    } else {
+      // Nếu không có bản ghi -> tạo mới
+      console.log("🆕 Không có bản ghi, chuyển sang tạo mới!");
+      handleCreate();
+    }
+  };
   const handleSaveDates = async () => {
     const updates = Object.entries(editingDates)
       .map(([appointmentId, newDate]) => {
@@ -708,7 +756,7 @@ const Inject = ({ record }) => {
               >
                 Đóng
               </button>
-              <button className="btn btn-success" onClick={handleSaveDates}>
+              <button className="btn btn-success" onClick={handleSave}>
                 Lưu
               </button>
             </div>

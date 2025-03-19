@@ -49,10 +49,10 @@ function BookingPage() {
                 try {
                     const dateObj = new Date(location.state.expectedInjectionDate);
                     const year = dateObj.getFullYear();
-                    const month = String(dateObj.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+                    const month = String(dateObj.getMonth() + 1).padStart(2, "0"); 
                     const day = String(dateObj.getDate()).padStart(2, "0");
     
-                    const formattedDate = `${year}-${month}-${day}`; // Chuẩn định dạng YYYY-MM-DD để hiển thị trong input date
+                    const formattedDate = `${year}-${month}-${day}`; 
                     setAppointmentDate(formattedDate);
                 } catch (error) {
                     console.error("Lỗi chuyển đổi ngày dự kiến:", error);
@@ -169,59 +169,121 @@ useEffect(() => {
           description,
         });
       };
-      
-  
-    const handleSubmit = async () => {
-      if (!selectedChild || !appointmentDate || !contactName || !contactPhone || (!selectedVaccine && !selectedVaccinePackage && !selectedPendingVaccine)) {
-        openNotification('warning', 'Thiếu thông tin', 'Vui lòng nhập đầy đủ thông tin!');
-        return;
-      }
-  
-      if (vaccineType === 'Vắc xin đang chờ' && selectedPendingVaccine) {
-        try {
-          const requestData = [{
-            appointmentId: parseInt(selectedPendingVaccine),
-            newDate: new Date(appointmentDate).toISOString(),
-          }];
-  
-          await api.put('/Appointment/update-multiple-injection-dates', requestData, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-  
-          openNotification('success', 'Thành công', '✅ Cập nhật ngày tiêm thành công!');
-          return;
-        } catch (error) {
-          openNotification('error', 'Lỗi cập nhật', `Cập nhật ngày tiêm thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
+      const handleSubmit = async () => {
+        if (!selectedChild || !appointmentDate || !contactName || !contactPhone || (!selectedVaccine && !selectedVaccinePackage && !selectedPendingVaccine)) {
+          openNotification('warning', 'Thiếu thông tin', 'Vui lòng nhập đầy đủ thông tin!');
           return;
         }
-      }
-  
-      let vaccineTypeFormatted = vaccineType === "Vaccine lẻ" ? "Single" : vaccineType === "Vắc xin gói" ? "Package" : "";
-      if (!vaccineTypeFormatted) {
-        openNotification('warning', 'Sai loại vắc xin', "Vui lòng chọn loại vắc xin hợp lệ!");
-        return;
-      }
-  
-      const requestData = {
-        childFullName: children.find(child => child.id === parseInt(selectedChild))?.childrenFullname || "",
-        contactFullName: contactName,
-        contactPhoneNumber: contactPhone,
-        vaccineType: vaccineTypeFormatted,
-        diaseaseName: vaccineTypeFormatted === "Single" ? selectedDisease || "" : "",
-        selectedVaccineId: vaccineTypeFormatted === "Single" ? parseInt(selectedVaccine) || null : null,
-        selectedVaccinePackageId: vaccineTypeFormatted === "Package" ? parseInt(selectedVaccinePackage) || null : null,
-        appointmentDate: new Date(appointmentDate).toISOString(),
+      
+        // Chuyển appointmentDate về yyyy-MM-dd để tránh lỗi lệch ngày
+        const formatDate = (date) => {
+          const d = new Date(date);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        };
+      
+        if (vaccineType === 'Vắc xin đang chờ' && selectedPendingVaccine) {
+          try {
+            const requestData = [{
+              appointmentId: parseInt(selectedPendingVaccine),
+              newDate: formatDate(appointmentDate), // Chuyển đổi ngày đúng format
+            }];
+      
+            console.log("Request Data (Cập nhật ngày tiêm):", requestData);
+      
+            await api.put('/Appointment/update-multiple-injection-dates', requestData, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+      
+            openNotification('success', 'Thành công', '✅ Cập nhật ngày tiêm thành công!');
+            return;
+          } catch (error) {
+            openNotification('error', 'Lỗi cập nhật', `Cập nhật ngày tiêm thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
+            return;
+          }
+        }
+      
+        let vaccineTypeFormatted = vaccineType === "Vaccine lẻ" ? "Single" : vaccineType === "Vắc xin gói" ? "Package" : "";
+        if (!vaccineTypeFormatted) {
+          openNotification('warning', 'Sai loại vắc xin', "Vui lòng chọn loại vắc xin hợp lệ!");
+          return;
+        }
+      
+        const requestData = {
+          childFullName: children.find(child => child.id === parseInt(selectedChild))?.childrenFullname || "",
+          contactFullName: contactName,
+          contactPhoneNumber: contactPhone,
+          vaccineType: vaccineTypeFormatted,
+          diaseaseName: vaccineTypeFormatted === "Single" ? selectedDisease || "" : "",
+          selectedVaccineId: vaccineTypeFormatted === "Single" ? parseInt(selectedVaccine) || null : null,
+          selectedVaccinePackageId: vaccineTypeFormatted === "Package" ? parseInt(selectedVaccinePackage) || null : null,
+          appointmentDate: formatDate(appointmentDate), // Đổi format ngày
+        };
+      
+        console.log("Request Data (Đặt lịch tiêm):", requestData);
+      
+        try {
+          await api.post('/Appointment/book-appointment', requestData, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          openNotification('success', 'Thành công', '✅ Đặt lịch thành công!');
+        } catch (error) {
+          openNotification('error', 'Lỗi đặt lịch', `Đặt lịch thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
+        }
       };
+      
+      
   
-      try {
-        await api.post('/Appointment/book-appointment', requestData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        openNotification('success', 'Thành công', '✅ Đặt lịch thành công!');
-      } catch (error) {
-        openNotification('error', 'Lỗi đặt lịch', `Đặt lịch thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
-      }
-    };
+    // const handleSubmit = async () => {
+    //   if (!selectedChild || !appointmentDate || !contactName || !contactPhone || (!selectedVaccine && !selectedVaccinePackage && !selectedPendingVaccine)) {
+    //     openNotification('warning', 'Thiếu thông tin', 'Vui lòng nhập đầy đủ thông tin!');
+    //     return;
+    //   }
+  
+    //   if (vaccineType === 'Vắc xin đang chờ' && selectedPendingVaccine) {
+    //     try {
+    //       const requestData = [{
+    //         appointmentId: parseInt(selectedPendingVaccine),
+    //         newDate: new Date(appointmentDate).toISOString(),
+    //       }];
+  
+    //       await api.put('/Appointment/update-multiple-injection-dates', requestData, {
+    //         headers: { Authorization: `Bearer ${token}` },
+    //       });
+  
+    //       openNotification('success', 'Thành công', '✅ Cập nhật ngày tiêm thành công!');
+    //       return;
+    //     } catch (error) {
+    //       openNotification('error', 'Lỗi cập nhật', `Cập nhật ngày tiêm thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
+    //       return;
+    //     }
+    //   }
+  
+    //   let vaccineTypeFormatted = vaccineType === "Vaccine lẻ" ? "Single" : vaccineType === "Vắc xin gói" ? "Package" : "";
+    //   if (!vaccineTypeFormatted) {
+    //     openNotification('warning', 'Sai loại vắc xin', "Vui lòng chọn loại vắc xin hợp lệ!");
+    //     return;
+    //   }
+  
+    //   const requestData = {
+    //     childFullName: children.find(child => child.id === parseInt(selectedChild))?.childrenFullname || "",
+    //     contactFullName: contactName,
+    //     contactPhoneNumber: contactPhone,
+    //     vaccineType: vaccineTypeFormatted,
+    //     diaseaseName: vaccineTypeFormatted === "Single" ? selectedDisease || "" : "",
+    //     selectedVaccineId: vaccineTypeFormatted === "Single" ? parseInt(selectedVaccine) || null : null,
+    //     selectedVaccinePackageId: vaccineTypeFormatted === "Package" ? parseInt(selectedVaccinePackage) || null : null,
+    //     appointmentDate: new Date(appointmentDate).toISOString(),
+    //   };
+  
+    //   try {
+    //     await api.post('/Appointment/book-appointment', requestData, {
+    //       headers: { Authorization: `Bearer ${token}` },
+    //     });
+    //     openNotification('success', 'Thành công', '✅ Đặt lịch thành công!');
+    //   } catch (error) {
+    //     openNotification('error', 'Lỗi đặt lịch', `Đặt lịch thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
+    //   }
+    // };
 
 // vaccine đang tiêm
 const [pendingVaccines, setPendingVaccines] = useState([]);

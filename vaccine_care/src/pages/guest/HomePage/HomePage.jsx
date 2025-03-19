@@ -191,7 +191,7 @@ function HomePage() {
           <div className="HomePage-combovaccine">
   <h2 className='HomePage-combovaccine_title'>Danh sách Gói Vắc Xin</h2>
   <div className="row">
-    {vaccinePackages.map((pkg) => (
+    {vaccinePackages.slice(0, 3).map((pkg) => (
       <div className="col-lg-4 col-md-6 col-12 mb-4" key={pkg.id}>
         <div className="HomePage-card card">
           <div className="HomePage-card-body card-body">
@@ -222,7 +222,7 @@ function HomePage() {
       <ul>
         {selectedPackage.vaccinePackageItems?.$values?.map((item, index) => (
           <li key={index}>
-            {item.vaccineName} - Mũi {item.doseNumber}
+            {item.vaccineName} - 1 Mũi 
           </li>
         )) ?? <p>Không có dữ liệu vắc xin</p>}
       </ul>

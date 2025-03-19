@@ -20,18 +20,26 @@ function VaccinationScheduleStatus() {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
-          const data = response.data;
-
+          const data = response.data; // Bổ sung response.data
+  
+          const formatDate = (dateString) => {
+            return new Date(dateString).toLocaleDateString("vi-VN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            });
+          };
+  
           const singleAppointments = data.singleVaccineAppointments.$values.map((appt) => ({
             id: appt.id,
             customer: appt.childFullName,
             phone: appt.contactPhoneNumber,
             vaccine: appt.vaccineName,
-            date: appt.dateInjection.split("T")[0],
+            date: formatDate(appt.dateInjection),
             status: appt.status,
             dateInjection: new Date(appt.dateInjection).getTime(),
           }));
-
+  
           const packageAppointments = data.packageVaccineAppointments.$values.map((pkg) => ({
             id: pkg.vaccinePackageId,
             customer: pkg.childFullName,
@@ -40,20 +48,21 @@ function VaccinationScheduleStatus() {
             dateInjection: new Date(pkg.vaccineItems.$values[0].dateInjection).getTime(),
             injections: pkg.vaccineItems.$values.map((dose) => ({
               vaccine: `Mũi ${dose.doseSequence} - ${dose.vaccineName}`,
-              date: dose.dateInjection.split("T")[0],
+              date: formatDate(dose.dateInjection),
               status: dose.status,
               id: dose.id,
               dateInjection: new Date(dose.dateInjection).getTime(),
             })),
           }));
-
+  
+          // Gọi setState bên ngoài .map()
           setSingleAppointments([...singleAppointments].sort((a, b) => a.dateInjection - b.dateInjection));
-setPackageAppointments([...packageAppointments].sort((a, b) => a.dateInjection - b.dateInjection));
-
+          setPackageAppointments([...packageAppointments].sort((a, b) => a.dateInjection - b.dateInjection));
         })
         .catch((error) => console.error("Lỗi khi tải lịch tiêm:", error));
     }
   }, [token]);
+  
 
   const handleCancel = (id) => {
     api
