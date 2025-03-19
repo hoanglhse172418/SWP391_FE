@@ -223,7 +223,7 @@ const Staff = () => {
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Created Date</th>
-                                <th>Last Updated</th>
+                                {/* <th>Last Updated</th> */}
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -236,7 +236,7 @@ const Staff = () => {
                                     <td>{item.email}</td>
                                     <td>{item.role === 'doctor' ? 'Doctor' : 'Staff'}</td>
                                     <td>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</td>
-                                    <td>{new Date(item.updatedAt).toLocaleDateString('vi-VN')}</td>
+                                    {/* <td>{new Date(item.updatedAt).toLocaleDateString('vi-VN')}</td> */}
                                     <td>
                                         <button 
                                             className="admin-delete-button" 

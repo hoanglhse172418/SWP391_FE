@@ -49,8 +49,6 @@ const Vaccine = () => {
                 manufacture: vaccine.manufacture,
                 description: vaccine.description,
                 imageUrl: vaccine.imageUrl,
-                recAgeStart: vaccine.recAgeStart,
-                recAgeEnd: vaccine.recAgeEnd,
                 inStockNumber: vaccine.inStockNumber,
                 price: vaccine.price,
                 status: vaccine.inStockNumber > 0 ? 'Còn hàng' : 'Hết hàng'
@@ -151,14 +149,14 @@ const Vaccine = () => {
                 </Tooltip>
             ),
         },
-        {
-            title: 'Age Range (years)',
-            key: 'age',
-            width: 150,
-            render: (_, record) => (
-                `${record.recAgeStart} - ${record.recAgeEnd}`
-            ),
-        },
+        // {
+        //     title: 'Age Range (years)',
+        //     key: 'age',
+        //     width: 150,
+        //     render: (_, record) => (
+        //         `${record.recAgeStart} - ${record.recAgeEnd}`
+        //     ),
+        // },
         {
             title: 'Quantity',
             dataIndex: 'inStockNumber',
@@ -276,7 +274,8 @@ const Vaccine = () => {
 
     const handleDelete = async () => {
         try {
-            await api.delete(`/VaccinePackage/delete?id=${deleteId}`);
+            // await api.delete(`/VaccinePackage/delete?id=${deleteId}`);
+            await api.delete(`/VaccinePackage/delete/${deleteId}`);
             message.success('Package deleted successfully');
             fetchVaccinePackages();
         } catch (error) {
