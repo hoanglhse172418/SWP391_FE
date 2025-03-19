@@ -186,3 +186,78 @@
 .admin .admin-delete-button:hover {
     background-color: #ff7875; /* Lighter red on hover */
 }
+
+/* Thêm style cho modal vaccine */
+.admin .admin-vaccine-modal {
+    top: 20px !important;
+}
+
+.admin .admin-vaccine-modal .ant-modal-content {
+    padding: 24px;
+    border-radius: 8px;
+}
+
+.admin .admin-vaccine-modal .ant-modal-header {
+    margin-bottom: 20px;
+}
+
+.admin .admin-vaccine-modal .ant-modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.admin .admin-vaccine-modal .ant-modal-body {
+    padding: 0;
+}
+
+.admin .admin-vaccine-modal .ant-modal-footer {
+    margin-top: 24px;
+    padding: 0;
+    border-top: none;
+}
+
+/* Style cho form bên trong modal */
+.admin .admin-vaccine-modal .ant-form-item {
+    margin-bottom: 16px;
+}
+
+.admin .admin-vaccine-modal .ant-form-item-label {
+    padding: 0;
+    line-height: 1.5;
+}
+
+.admin .admin-vaccine-modal .ant-form-item-label > label {
+    font-weight: 500;
+    color: #374151;
+}
+
+.admin .admin-vaccine-modal .ant-input,
+.admin .admin-vaccine-modal .ant-input-number {
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.admin .admin-vaccine-modal .ant-input:focus,
+.admin .admin-vaccine-modal .ant-input-number:focus {
+    border-color: var(--primary-colorVaccine);
+    box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.1);
+}
+
+/* Style cho nút trong modal */
+.admin .admin-vaccine-modal .ant-modal-footer .ant-btn {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+.admin .admin-vaccine-modal .ant-modal-footer .ant-btn-primary {
+    background-color: var(--primary-colorVaccine);
+    border-color: var(--primary-colorVaccine);
+}
+
+.admin .admin-vaccine-modal .ant-modal-footer .ant-btn-primary:hover {
+    background-color: #00a884;
+    border-color: #00a884;
+}

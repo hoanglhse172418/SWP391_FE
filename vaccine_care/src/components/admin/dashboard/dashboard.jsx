@@ -97,20 +97,56 @@ const Dashboard = () => {
             return [];
         }
         
+        console.log('Raw appointment data:', appointmentData); // Log raw data
+        
         // Count appointments by status
         const statusCounts = appointmentData.reduce((acc, appointment) => {
-            const status = appointment.status || 'Unknown';
+            // Convert status to lowercase to handle case variations
+            const status = (appointment.status || 'Unknown').toLowerCase();
             acc[status] = (acc[status] || 0) + 1;
             return acc;
         }, {});
         
-        // Convert to array format for pie chart
-        const result = Object.entries(statusCounts).map(([status, count]) => ({
-            name: status,
-            value: count
-        }));
+        console.log('Status counts:', statusCounts); // Log counts
         
-        console.log('Appointment status data:', result); // Debug log
+        // Convert to array format for pie chart and translate status to Vietnamese
+        const result = Object.entries(statusCounts).map(([status, count]) => {
+            let translatedName;
+            switch(status.toLowerCase()) {
+                case 'pending':
+                    translatedName = 'Chờ xác nhận';
+                    break;
+                case 'confirmed':
+                    translatedName = 'Đã xác nhận';
+                    break;
+                case 'completed':
+                    translatedName = 'Hoàn thành';
+                    break;
+                case 'cancelled':
+                case 'canceled': // Handle both spellings
+                    translatedName = 'Đã hủy';
+                    break;
+                case 'processing':
+                    translatedName = 'Đang xử lý';
+                    break;
+                case 'rejected':
+                    translatedName = 'Từ chối';
+                    break;
+                case 'unknown':
+                    translatedName = 'Không xác định';
+                    break;
+                default:
+                    translatedName = status;
+                    console.log('Unhandled status:', status); // Log unhandled status
+            }
+            return {
+                name: translatedName,
+                value: count,
+                originalStatus: status // Keep original status for debugging
+            };
+        });
+        
+        console.log('Final processed data:', result); // Log final data
         return result;
     };
     
@@ -260,6 +296,7 @@ const Dashboard = () => {
                                                 outerRadius={80}
                                                 fill="#8884d8"
                                                 dataKey="value"
+                                                nameKey="name"
                                                 animationBegin={0}
                                                 animationDuration={1500}
                                                 animationEasing="ease-out"
@@ -268,8 +305,8 @@ const Dashboard = () => {
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
-                                            <Tooltip />
-                                            <Legend />
+                                            <Tooltip formatter={(value, name) => [value, name]} />
+                                            <Legend formatter={(value) => value} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 ) : (

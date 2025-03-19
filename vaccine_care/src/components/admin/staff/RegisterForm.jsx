@@ -8,57 +8,63 @@ const RegisterForm = ({ isOpen, onClose, type, onSubmit }) => {
         try {
             const values = await form.validateFields();
             await onSubmit(values);
-            message.success(`${type === 'doctor' ? 'Bác sĩ' : 'Nhân viên'} đã được tạo thành công`);
+            message.success(`Tạo tài khoản ${type === 'doctor' ? 'bác sĩ' : 'nhân viên'} thành công!`);
             form.resetFields();
             onClose();
         } catch (error) {
-            console.error('Error creating account:', error);
-            message.error('Đã xảy ra lỗi khi tạo tài khoản');
+            console.error('Validation failed:', error);
+            message.error('Vui lòng kiểm tra lại thông tin!');
         }
     };
 
     return (
         <Modal
-            title={`Tạo tài khoản ${type === 'doctor' ? 'Bác sĩ' : 'Nhân viên'}`}
+            title={`Tạo tài khoản ${type === 'doctor' ? 'bác sĩ' : 'nhân viên'}`}
             open={isOpen}
             onOk={handleSubmit}
             onCancel={onClose}
             okText="Tạo"
             cancelText="Hủy"
-            style={{ 
-                top: '20%',
-                transform: 'translateY(-20%)'
-            }}
+            className="staff-modal"
+            maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+            style={{ top: '20px' }}
         >
             <Form
                 form={form}
                 layout="vertical"
+                name="register_form"
             >
                 <Form.Item
                     name="username"
                     label="Tên đăng nhập"
-                    rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập' }]}
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
+                        { min: 3, message: 'Tên đăng nhập phải có ít nhất 3 ký tự!' }
+                    ]}
                 >
-                    <Input />
+                    <Input placeholder="Nhập tên đăng nhập" />
                 </Form.Item>
 
                 <Form.Item
                     name="password"
                     label="Mật khẩu"
-                    rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập mật khẩu!' },
+                        { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+                    ]}
                 >
-                    <Input.Password />
+                    <Input.Password placeholder="Nhập mật khẩu" />
                 </Form.Item>
 
                 <Form.Item
                     name="email"
                     label="Email"
                     rules={[
-                        { required: true, message: 'Vui lòng nhập email' },
-                        { type: 'email', message: 'Email không hợp lệ' }
+                        { required: true, message: 'Vui lòng nhập email!' },
+                        { type: 'email', message: 'Email không hợp lệ!' }
                     ]}
                 >
-                    <Input />
+                    <Input placeholder="Nhập email" />
                 </Form.Item>
             </Form>
         </Modal>

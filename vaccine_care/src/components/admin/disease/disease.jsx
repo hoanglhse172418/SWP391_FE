@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table } from 'antd';
 import api from '../../../services/api';
 import './disease.css';
+import '../admin.css';
 
 const Disease = () => {
     const [diseases, setDiseases] = useState([]);

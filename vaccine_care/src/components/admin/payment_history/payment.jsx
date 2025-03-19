@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Tag, Spin, message } from 'antd';
 import axios from 'axios';
 import './payment.css';
+import '../admin.css';
 
 // Move API_BASE_URL to a separate config file or environment variable
 const API_BASE_URL = 'https://vaccinecare.azurewebsites.net/api';

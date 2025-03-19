@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './staff.css';
+import '../admin.css';
 import RegisterForm from './RegisterForm';
 import api from '../../../services/api';
 import { Modal, message } from 'antd';

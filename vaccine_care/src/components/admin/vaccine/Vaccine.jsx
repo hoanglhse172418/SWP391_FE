@@ -14,6 +14,7 @@ import {
 } from "antd";
 import api from "../../../services/api";
 import "./vaccine.css";
+import "../admin.css";
 
 const Vaccine = () => {
   const [vaccines, setVaccines] = useState([]);
@@ -66,6 +67,8 @@ const Vaccine = () => {
         imageUrl: vaccine.imageUrl,
         inStockNumber: vaccine.inStockNumber,
         price: vaccine.price,
+        recAgeStart: vaccine.recAgeStart,
+        recAgeEnd: vaccine.recAgeEnd,
         status: vaccine.inStockNumber > 0 ? "Còn hàng" : "Hết hàng",
       }));
       setVaccines(formattedData);
@@ -209,6 +212,7 @@ const Vaccine = () => {
               price: record.price,
               notes: record.notes || "",
               imageFile: null,
+              currentImageUrl: record.imageUrl
             });
             setIsUpdateModalVisible(true);
           }}
@@ -334,7 +338,7 @@ const Vaccine = () => {
     try {
       // Kiểm tra tên gói
       if (!packageName.trim()) {
-        message.error("Please enter the vaccine package name");
+        message.error("Vui lòng nhập tên gói vaccine");
         return;
       }
 
@@ -343,46 +347,29 @@ const Vaccine = () => {
         (v) => v.vaccineId && v.doseNumber > 0
       );
       if (validVaccines.length === 0) {
-        message.error("Please select at least one vaccine");
+        message.error("Vui lòng chọn ít nhất một vaccine");
         return;
       }
-
-      // Log để kiểm tra dữ liệu
-      console.log("Selected vaccines before mapping:", selectedVaccines);
 
       const payload = {
         name: packageName.trim(),
         vaccinePackageItems: selectedVaccines
           .filter((v) => v.vaccineId && v.doseNumber > 0)
           .map((item) => ({
-            vaccineId: Number(item.vaccineId), // Đảm bảo vaccineId là số
-            doseNumber: Number(item.doseNumber), // Đảm bảo doseNumber là số
+            vaccineId: Number(item.vaccineId),
+            doseNumber: Number(item.doseNumber),
           })),
       };
 
-      // Log payload trước khi gửi
-      console.log("Sending payload:", payload);
-
-      const response = await api.post("/VaccinePackage/create", payload);
-
-      // Log response
-      console.log("API Response:", response);
-
-      message.success("Vaccine package created successfully.");
+      await api.post("/VaccinePackage/create", payload);
+      message.success("Tạo gói vaccine thành công");
       setIsCreateModalVisible(false);
       setPackageName("");
       setSelectedVaccines([{ vaccineId: "", doseNumber: 1 }]);
-      fetchVaccinePackages(); // Refresh the list
+      fetchVaccinePackages();
     } catch (error) {
       console.error("Error creating vaccine package:", error);
-      // Log chi tiết lỗi
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-      }
-      message.error(
-        "An error occurred while creating the vaccine package: " +
-          (error.response?.data?.message || error.message)
-      );
+      message.error("Đã xảy ra lỗi khi tạo gói vaccine");
     }
   };
 
@@ -463,11 +450,11 @@ const Vaccine = () => {
       if (vaccineToUpdate.imageFile) {
         formData.append("ImageFile", vaccineToUpdate.imageFile);
       }
-      formData.append("RecAgeStart", vaccineToUpdate.recAgeStart);
-      formData.append("RecAgeEnd", vaccineToUpdate.recAgeEnd);
+      formData.append("RecAgeStart", vaccineToUpdate.recAgeStart || 0);
+      formData.append("RecAgeEnd", vaccineToUpdate.recAgeEnd || 0);
       formData.append("InStockNumber", vaccineToUpdate.inStockNumber);
       formData.append("Price", vaccineToUpdate.price);
-      formData.append("Notes", vaccineToUpdate.notes);
+      formData.append("Notes", vaccineToUpdate.notes || "");
 
       await api.put(`/Vaccine/update/${vaccineToUpdate.id}`, formData, {
         headers: {
@@ -477,7 +464,7 @@ const Vaccine = () => {
 
       message.success("Vaccine đã được cập nhật thành công");
       setIsUpdateModalVisible(false);
-      fetchVaccines(); // Refresh danh sách
+      fetchVaccines();
     } catch (error) {
       console.error("Error updating vaccine:", error);
       message.error("Đã xảy ra lỗi khi cập nhật vaccine");
@@ -569,43 +556,56 @@ const Vaccine = () => {
         }}
         okText="Tạo"
         cancelText="Hủy"
+        className="admin-vaccine-modal"
+        style={{ top: '20px' }}
+        maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+        bodyStyle={{ padding: '20px' }}
       >
         <div style={{ marginBottom: "16px" }}>
-          <label>Tên gói:</label>
-          <Input
-            value={packageName}
-            onChange={(e) => setPackageName(e.target.value)}
-            placeholder="Nhập tên gói vaccine"
-          />
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", marginBottom: "4px" }}>Tên gói:</label>
+            <Input
+              value={packageName}
+              onChange={(e) => setPackageName(e.target.value)}
+              placeholder="Nhập tên gói vaccine"
+            />
+          </div>
         </div>
 
         {selectedVaccines.map((vaccine, index) => (
           <div key={index} style={{ marginBottom: "16px" }}>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-              <Select
-                style={{ flex: 1 }}
-                value={vaccine.vaccineId}
-                onChange={(value) =>
-                  updateVaccineField(index, "vaccineId", value)
-                }
-                placeholder="Chọn vaccine"
-              >
-                {vaccines.map((v) => (
-                  <Select.Option key={v.id} value={v.id}>
-                    {v.name}
-                  </Select.Option>
-                ))}
-              </Select>
-              <InputNumber
-                min={1}
-                value={vaccine.doseNumber}
-                onChange={(value) =>
-                  updateVaccineField(index, "doseNumber", value)
-                }
-                placeholder="Số liều"
-              />
+            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", marginBottom: "4px" }}>Vaccine:</label>
+                <Select
+                  style={{ width: "100%" }}
+                  value={vaccine.vaccineId}
+                  onChange={(value) => updateVaccineField(index, "vaccineId", value)}
+                  placeholder="Chọn vaccine"
+                >
+                  {vaccines.map((v) => (
+                    <Select.Option key={v.id} value={v.id}>
+                      {v.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+              <div style={{ width: "80px" }}>
+                <label style={{ display: "block", marginBottom: "4px" }}>Số liều:</label>
+                <InputNumber
+                  min={1}
+                  value={vaccine.doseNumber}
+                  onChange={(value) => updateVaccineField(index, "doseNumber", value)}
+                  placeholder="Số liều"
+                  style={{ width: "100%" }}
+                />
+              </div>
               {selectedVaccines.length > 1 && (
-                <Button onClick={() => removeVaccineField(index)} danger>
+                <Button 
+                  onClick={() => removeVaccineField(index)} 
+                  danger
+                  style={{ marginBottom: "1px" }}
+                >
                   Xóa
                 </Button>
               )}
@@ -614,7 +614,12 @@ const Vaccine = () => {
         ))}
 
         {selectedVaccines.length < 3 && (
-          <Button type="dashed" onClick={addVaccineField} block>
+          <Button 
+            type="dashed" 
+            onClick={addVaccineField} 
+            block
+            style={{ marginTop: "8px" }}
+          >
             Thêm vaccine
           </Button>
         )}
@@ -641,6 +646,10 @@ const Vaccine = () => {
         okText="Tạo"
         cancelText="Hủy"
         width={800}
+        className="admin-vaccine-modal"
+        style={{ top: '20px' }}
+        maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+        bodyStyle={{ padding: '20px' }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
@@ -764,6 +773,10 @@ const Vaccine = () => {
         okText="Cập nhật"
         cancelText="Hủy"
         width={800}
+        className="admin-vaccine-modal"
+        style={{ top: '20px' }}
+        maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+        bodyStyle={{ padding: '20px' }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
@@ -811,6 +824,16 @@ const Vaccine = () => {
 
           <div>
             <label>Hình ảnh:</label>
+            {vaccineToUpdate?.currentImageUrl && (
+              <div style={{ marginBottom: '10px' }}>
+                <Image
+                  src={vaccineToUpdate.currentImageUrl}
+                  alt="Current vaccine"
+                  style={{ width: 100, height: 100, objectFit: "cover" }}
+                />
+                <p style={{ marginTop: '5px', color: '#666' }}>Hình ảnh hiện tại</p>
+              </div>
+            )}
             <input
               type="file"
               onChange={(e) => {
@@ -823,6 +846,7 @@ const Vaccine = () => {
               }}
               accept="image/*"
             />
+            <p style={{ marginTop: '5px', color: '#666' }}>Chọn hình ảnh mới nếu muốn thay đổi</p>
           </div>
 
           <div style={{ display: "flex", gap: "16px" }}>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table } from 'antd';
 import api from '../../../services/api';
 import './child.css';
+import '../admin.css';
 
 const Child = () => {
     const [children, setChildren] = useState([]);
