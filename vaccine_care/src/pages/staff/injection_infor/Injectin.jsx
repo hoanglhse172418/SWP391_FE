@@ -59,7 +59,7 @@ const Injection = () => {
     try {
       const response = await api.get(url);
       if (response.data.$values) {
-        const formattedData = response.data.$values.map((item, index) => {
+        const formattedData = response.data.$values.map((item) => {
           const date = new Date(item.dateInjection);
           return {
             id: item.id,
@@ -68,6 +68,8 @@ const Injection = () => {
             status: item.status,
           };
         });
+
+        formattedData.sort((a, b) => b.id - a.id);
         const newDataString = JSON.stringify(formattedData);
         if (newDataString !== prevDataString) {
           setLoading(true);
