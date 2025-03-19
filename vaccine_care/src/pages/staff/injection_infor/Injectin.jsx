@@ -9,6 +9,7 @@ import Inject from "../inject/Inject";
 import Completed from "../completed/Completed";
 import React from "react";
 import api from "../../../services/api";
+import { Modal, message } from "antd";
 
 const Injection = () => {
   const [activeTab, setActiveTab] = useState("today");
@@ -159,24 +160,52 @@ const Injection = () => {
     }
   };
 
-  const handleCancel = async (id) => {
-    try {
-      const response = await api.put(
-        `/Appointment/cancel-appointment/${id}`
-      );
+  // const handleCancel = async (id) => {
+  //   const isConfirmed = window.confirm("Bạn có chắc chắn muốn hủy lịch hẹn này không?");
+  // if (!isConfirmed) return;
+  //   try {
+  //     const response = await api.put(
+  //       `/Appointment/cancel-appointment/${id}`
+  //     );
 
-      if (response.status === 200) {
-        // Cập nhật UI sau khi API thành công
-        setData((prevData) =>
-          prevData.map((item) =>
-            item.id === id ? { ...item, status: "Canceled" } : item
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Lỗi khi hủy cuộc hẹn:", error);
-    }
+  //     if (response.status === 200) {
+  //       // Cập nhật UI sau khi API thành công
+  //       setData((prevData) =>
+  //         prevData.map((item) =>
+  //           item.id === id ? { ...item, status: "Canceled" } : item
+  //         )
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Lỗi khi hủy cuộc hẹn:", error);
+  //   }
+  // };
+
+  const handleCancel = async (id) => {
+    Modal.confirm({
+      title: "Xác nhận hủy lịch hẹn",
+      content: "Bạn có chắc chắn muốn hủy lịch hẹn này không?",
+      okText: "Có",
+      cancelText: "Không",
+      onOk: async () => {
+        try {
+          const response = await api.put(`/Appointment/cancel-appointment/${id}`);
+          if (response.status === 200) {
+            
+            // Cập nhật UI sau khi API thành công
+            setData((prevData) =>
+              prevData.map((item) =>
+                item.id === id ? { ...item, status: "Canceled" } : item
+              )
+            );
+          }
+        } catch (error) {
+          console.error("Lỗi khi hủy cuộc hẹn:", error);
+        }
+      },
+    });
   };
+  
 
   const [tableParams, setTableParams] = useState({
     pagination: {

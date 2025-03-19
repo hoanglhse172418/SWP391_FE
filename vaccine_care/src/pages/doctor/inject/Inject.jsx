@@ -675,7 +675,6 @@ const Inject = ({ record }) => {
                       <tr>
                         <th>Vắc xin</th>
                         <th>Ngày tiêm</th>
-                        <th>Bệnh</th>
                         <th>Trạng thái</th>
                       </tr>
                     </thead>
@@ -727,7 +726,6 @@ const Inject = ({ record }) => {
                               </span>
                             )}
                           </td>
-                          <td></td>
                           <td
                             className={`modal-status-${item.status.toLowerCase()}`}
                           >
