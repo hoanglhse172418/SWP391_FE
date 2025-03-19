@@ -59,7 +59,7 @@ const Injection = () => {
     try {
       const response = await api.get(url);
       if (response.data.$values) {
-        const formattedData = response.data.$values.map((item, index) => {
+        const formattedData = response.data.$values.map((item) => {
           const date = new Date(item.dateInjection);
           return {
             id: item.id,
@@ -68,6 +68,8 @@ const Injection = () => {
             status: item.status,
           };
         });
+
+        formattedData.sort((a, b) => b.id - a.id);
         const newDataString = JSON.stringify(formattedData);
         if (newDataString !== prevDataString) {
           setLoading(true);
@@ -97,11 +99,11 @@ const Injection = () => {
       setAppointmentDetails(details); // Lưu dữ liệu chi tiết
 
       // // Kiểm tra processStep từ API có đúng không
-      // if (details.processStep) {
-      //   console.log("processStep từ API:", details.processStep);
-      // } else {
-      //   console.log("API không trả về processStep!");
-      // }
+      if (details.processStep) {
+        console.log("processStep từ API:", details.processStep);
+      } else {
+        console.log("API không trả về processStep!");
+      }
 
       // Chỉ cập nhật currentStep nếu có giá trị hợp lệ
       if (
@@ -346,7 +348,7 @@ const Injection = () => {
                     details: appointmentDetails,
                   })
                 ) : (
-                  <p>Đang tải...</p>
+                  <div className="loader"></div>
                 )}
               </div>
 

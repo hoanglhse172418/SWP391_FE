@@ -18,15 +18,17 @@ const Invoice = ({ record, details }) => {
       const invoiceData = response.data;
       console.log("Dữ liệu nhận được:", invoiceData);
 
+      const displayName = invoiceData.type === "Package" ? invoiceData.packageName : invoiceData.vaccineName;
+
       // Kiểm tra xem có dữ liệu vắc xin không
-      const formattedData =
-        invoiceData.items?.$values.map((item) => ({
-          id: item.$id,
-          vaccine: item.vaccineName,
-          quantity: item.doseNumber,
-          price: item.pricePerDose.toLocaleString(),
-          total: (item.pricePerDose * item.doseNumber).toLocaleString(),
-        })) || [];
+      const formattedData = [
+        {
+          id: invoiceData.paymentId,
+          vaccine: displayName, // Hiển thị tên gói hoặc tên vaccine
+          price: invoiceData.totalPrice ? invoiceData.totalPrice.toLocaleString() : "0",
+          total: invoiceData.totalPrice ? invoiceData.totalPrice.toLocaleString() : "0",
+        },
+      ];
 
       setData(formattedData);
       setTotalPrice(invoiceData.totalPrice);
@@ -64,21 +66,11 @@ const Invoice = ({ record, details }) => {
     {
       title: "Vắc xin",
       dataIndex: "vaccine",
-      width: "30%",
-    },
-    {
-      title: "Số lượng",
-      dataIndex: "quantity",
-      width: "20%",
+      width: "70%",
     },
     {
       title: "Giá",
       dataIndex: "price",
-      width: "20%",
-    },
-    {
-      title: "Tổng giá",
-      dataIndex: "total",
       width: "30%",
     },
   ];
@@ -86,7 +78,7 @@ const Invoice = ({ record, details }) => {
   const handleConfirmPayment = async () => {
     try {
       const response = await api.put(
-        `/Payment/update-status-payment-status/step-3-to-4`,
+        `/Payment/update-status-payment-status/confirm-payment`,
         null,
         {
           params: {
