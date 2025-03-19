@@ -89,13 +89,12 @@
   padding: 20px;
   border-radius: 8px;
   width: 100%;
-  max-width: 950px;
+  max-width: 1150px;
   overflow-y: scroll;
   height: 800px;
 }
 
-
-.modal-table{
+.modal-table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
@@ -124,16 +123,16 @@
   padding: 12px;
 }
 
-.modal-pkg{
+.modal-pkg {
   text-align: center;
 }
 
-.modal-pkg p{
+.modal-pkg p {
   font-size: 18px;
   color: #333;
 }
 
-.modal-pkg p strong{
+.modal-pkg p strong {
   font-size: 22px;
 }
 
@@ -142,7 +141,7 @@
   width: 400px;
 }
 
-.modal-table td:nth-child(1){
+.modal-table td:nth-child(1) {
   text-align: left;
 }
 
@@ -175,15 +174,37 @@
   opacity: 0.6;
 }
 
-.modal-disabled-button:hover{
+.modal-disabled-button:hover {
   background-color: gray;
   cursor: not-allowed;
   opacity: 0.6;
   color: #fff;
 }
 
-.modal-input-date{
+.modal-input-date {
   padding: 10px;
   border: 1px solid #d9d9d9;
   outline: none;
+}
+
+.status-datiem {
+  color: #28a745 !important;
+  font-weight: bold;
+}
+
+.status-chuatiem {
+  color: #ffa500 !important;
+  font-weight: bold;
+}
+
+.popup_close_modal_2 {
+  position: sticky;
+  top: 0;
+  left: 1100px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #808080;
+  z-index: 999;
 }
