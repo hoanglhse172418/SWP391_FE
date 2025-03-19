@@ -208,3 +208,24 @@
   color: #808080;
   z-index: 999;
 }
+
+.btn-save-inject{
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+  background-color: var(--primary-colorVaccine);
+  color: #fff;
+  font-size: 14px;
+  border-radius: 4px;
+  font-weight: 550;
+  width: 300px;
+}
+
+.btn-save-inject:hover{
+  background-color: #19b8b03a;
+  color: var(--primary-colorVaccine);
+}
+
+.modal-table-1{
+  margin-bottom: 20px;
+}

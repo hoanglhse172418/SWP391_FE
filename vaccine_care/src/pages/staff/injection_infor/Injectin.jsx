@@ -348,7 +348,7 @@ const Injection = () => {
                     details: appointmentDetails,
                   })
                 ) : (
-                  <p>Đang tải...</p>
+                  <div className="loader"></div>
                 )}
               </div>
 

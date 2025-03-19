@@ -670,7 +670,7 @@ const Inject = ({ record }) => {
               </div>
               <div className="VaccinPage-flex1 modal-buttons">
                 <button
-                  className="btn btn-success"
+                  className="btn-save-inject"
                   onClick={handleSaveDatesExpectedDate}
                 >
                   Lưu
@@ -756,7 +756,7 @@ const Inject = ({ record }) => {
                 </div>
                 <div className="VaccinPage-flex1 modal-buttons">
                   <button
-                    className="btn btn-success"
+                    className="btn-save-inject"
                     onClick={handleSaveDatesPackage}
                   >
                     Lưu
