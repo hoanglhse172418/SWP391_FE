@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table } from 'antd';
 import api from '../../../services/api';
 import './disease.css';
+import '../admin.css';
 
 const Disease = () => {
     const [diseases, setDiseases] = useState([]);
@@ -35,7 +36,7 @@ const Disease = () => {
             key: 'id',
         },
         {
-            title: 'Disease Name',
+            title: 'Tên bệnh',
             dataIndex: 'name',
             key: 'name',
         }
@@ -44,7 +45,7 @@ const Disease = () => {
     return (
         <div className="admin">
             <div className="disease-management">
-                <h2 className="disease-management-title">Disease Management</h2>
+                <h2 className="disease-management-title">Quản lý bệnh</h2>
                 <Table 
                     columns={columns} 
                     dataSource={diseases}

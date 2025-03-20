@@ -45,7 +45,7 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
     // Format date function
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleString();
+        return new Date(dateString).toLocaleString('vi-VN');
     };
 
     return (
@@ -55,12 +55,12 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
                     <IoMenuOutline />
                 </button>
                 <img src={logo} alt="Logo" className="admin-header-logo" />
-                <span className="admin-header-admin-text">Admin</span>
+                <span className="admin-header-admin-text">Quản trị viên</span>
             </div>
             <div className="admin-header-search-container">
                 <input 
                     type="text" 
-                    placeholder="Search..." 
+                    placeholder="Tìm kiếm..." 
                     className="admin-header-search-input" 
                     aria-label="Search"
                 />
@@ -82,7 +82,7 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
                             <>
                                 <div className="admin-profile-modal-header">
                                     <img src={profileImage} alt="Profile" className="admin-modal-profile-img" />
-                                    <h2>Account Information</h2>
+                                    <h2>Thông tin tài khoản</h2>
                                 </div>
                                 <div className="admin-profile-modal-content">
                                     <div className="admin-info-item">
@@ -90,19 +90,19 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
                                         <span>{userData?.email || 'N/A'}</span>
                                     </div>
                                     <div className="admin-info-item">
-                                        <strong>Role:</strong>
+                                        <strong>Vai trò:</strong>
                                         <span>{userData?.role ? userData.role.charAt(0).toUpperCase() + userData.role.slice(1) : 'N/A'}</span>
                                     </div>
                                     <div className="admin-info-item">
-                                        <strong>Created At:</strong>
+                                        <strong>Ngày tạo:</strong>
                                         <span>{formatDate(userData?.createdAt)}</span>
                                     </div>
                                     <div className="admin-info-item">
-                                        <strong>Last Login:</strong>
+                                        <strong>Đăng nhập cuối:</strong>
                                         <span>{formatDate(userData?.lastLogin)}</span>
                                     </div>
                                     <div className="admin-info-item">
-                                        <strong>Last Updated:</strong>
+                                        <strong>Cập nhật cuối:</strong>
                                         <span>{formatDate(userData?.updatedAt)}</span>
                                     </div>
                                 </div>

@@ -172,3 +172,257 @@
     border-radius: 50%;
     cursor: pointer;
 }
+
+/* Admin Responsive Styles */
+@media screen and (max-width: 768px) {
+  .admin {
+    padding: 10px;
+  }
+
+  /* Common container styles */
+  .admin .admin-vaccine-container,
+  .admin .staff-container,
+  .admin .disease-management,
+  .admin .child-management,
+  .admin .payment-history {
+    padding: 16px;
+  }
+
+  /* Common title styles */
+  .admin .admin-vaccine-title,
+  .admin .staff-title,
+  .admin .disease-management-title,
+  .admin .child-management-title,
+  .admin .payment-history-title {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  /* Table responsive styles */
+  .admin .ant-table {
+    overflow-x: auto;
+  }
+
+  .admin .ant-table-thead > tr > th,
+  .admin .ant-table-tbody > tr > td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  /* Header controls responsive */
+  .admin .admin-vaccine-header,
+  .admin .staff-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .admin .admin-vaccine-controls,
+  .admin .staff-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .admin .admin-vaccine-controls button,
+  .admin .staff-actions button {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  /* Modal responsive styles */
+  .admin .ant-modal {
+    width: 95% !important;
+    max-width: none;
+  }
+
+  .admin .ant-modal-body {
+    padding: 16px;
+  }
+
+  /* Form responsive styles */
+  .admin .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  .admin .ant-input,
+  .admin .ant-select,
+  .admin .ant-input-number {
+    width: 100%;
+  }
+
+  /* Image responsive styles */
+  .admin .ant-image {
+    max-width: 100%;
+  }
+
+  .admin .ant-image img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Tag responsive styles */
+  .admin .ant-tag {
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+
+  /* Pagination responsive styles */
+  .admin .ant-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  /* Vaccine specific responsive styles */
+  .admin .admin-vaccine-container .ant-table {
+    margin: 0 -16px;
+    width: calc(100% + 32px);
+  }
+
+  .admin .admin-vaccine-container .ant-table-thead > tr > th,
+  .admin .admin-vaccine-container .ant-table-tbody > tr > td {
+    white-space: nowrap;
+  }
+
+  .admin .admin-vaccine-container .vaccine-description-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin .admin-vaccine-container .ant-table-expanded-row > td {
+    padding: 0 !important;
+  }
+
+  .admin .admin-vaccine-container .ant-table-expanded-row .ant-table {
+    margin: 0;
+    width: 100%;
+  }
+
+  /* Vaccine modal responsive styles */
+  .admin .admin-vaccine-modal .ant-modal-content {
+    padding: 16px;
+  }
+
+  .admin .admin-vaccine-modal .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .admin .admin-vaccine-modal .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+
+  .admin .admin-vaccine-modal .ant-input,
+  .admin .admin-vaccine-modal .ant-select,
+  .admin .admin-vaccine-modal .ant-input-number {
+    width: 100%;
+  }
+
+  .admin .admin-vaccine-modal .ant-upload {
+    width: 100%;
+  }
+
+  .admin .admin-vaccine-modal .ant-upload-list {
+    width: 100%;
+  }
+
+  .admin .admin-vaccine-modal .ant-upload-list-item {
+    width: 100%;
+  }
+
+  .admin .admin-vaccine-modal .ant-upload-list-item-thumbnail {
+    width: 100%;
+    height: auto;
+  }
+
+  .admin .admin-vaccine-modal .ant-upload-list-item-thumbnail img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+}
+
+/* Small mobile devices */
+@media screen and (max-width: 480px) {
+  .admin {
+    padding: 8px;
+  }
+
+  .admin .admin-vaccine-container,
+  .admin .staff-container,
+  .admin .disease-management,
+  .admin .child-management,
+  .admin .payment-history {
+    padding: 12px;
+  }
+
+  .admin .admin-vaccine-title,
+  .admin .staff-title,
+  .admin .disease-management-title,
+  .admin .child-management-title,
+  .admin .payment-history-title {
+    font-size: 20px;
+  }
+
+  .admin .ant-table-thead > tr > th,
+  .admin .ant-table-tbody > tr > td {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .admin .ant-tag {
+    padding: 1px 6px;
+    font-size: 11px;
+  }
+
+  /* Vaccine specific small screen styles */
+  .admin .admin-vaccine-container .ant-table {
+    margin: 0 -12px;
+    width: calc(100% + 24px);
+  }
+
+  .admin .admin-vaccine-container .vaccine-description-cell {
+    max-width: 150px;
+  }
+
+  .admin .admin-vaccine-container .ant-table-expanded-row .ant-table {
+    font-size: 11px;
+  }
+
+  .admin .admin-vaccine-container .ant-table-expanded-row .ant-table-thead > tr > th,
+  .admin .admin-vaccine-container .ant-table-expanded-row .ant-table-tbody > tr > td {
+    padding: 4px 6px;
+  }
+}
+
+/* Tablet devices */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .admin {
+    padding: 16px;
+  }
+
+  .admin .admin-vaccine-container,
+  .admin .staff-container,
+  .admin .disease-management,
+  .admin .child-management,
+  .admin .payment-history {
+    padding: 20px;
+  }
+
+  .admin .ant-table-thead > tr > th,
+  .admin .ant-table-tbody > tr > td {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  /* Vaccine specific tablet styles */
+  .admin .admin-vaccine-container .vaccine-description-cell {
+    max-width: 250px;
+  }
+
+  .admin .admin-vaccine-container .ant-table-expanded-row .ant-table {
+    font-size: 13px;
+  }
+}

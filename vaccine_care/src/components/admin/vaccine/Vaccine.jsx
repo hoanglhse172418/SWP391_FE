@@ -14,6 +14,7 @@ import {
 } from "antd";
 import api from "../../../services/api";
 import "./vaccine.css";
+import "../admin.css";
 
 const Vaccine = () => {
   const [vaccines, setVaccines] = useState([]);
@@ -66,6 +67,8 @@ const Vaccine = () => {
         imageUrl: vaccine.imageUrl,
         inStockNumber: vaccine.inStockNumber,
         price: vaccine.price,
+        recAgeStart: vaccine.recAgeStart,
+        recAgeEnd: vaccine.recAgeEnd,
         status: vaccine.inStockNumber > 0 ? "Còn hàng" : "Hết hàng",
       }));
       setVaccines(formattedData);
@@ -128,7 +131,7 @@ const Vaccine = () => {
       width: 70,
     },
     {
-      title: "Image",
+      title: "Hình ảnh",
       dataIndex: "imageUrl",
       key: "imageUrl",
       width: 120,
@@ -141,19 +144,19 @@ const Vaccine = () => {
       ),
     },
     {
-      title: "Vaccine Name",
+      title: "Tên vắc xin",
       dataIndex: "name",
       key: "name",
       width: 150,
     },
     {
-      title: "Manufacturer",
+      title: "Nhà sản xuất",
       dataIndex: "manufacture",
       key: "manufacture",
       width: 120,
     },
     {
-      title: "Description",
+      title: "Mô tả",
       dataIndex: "description",
       key: "description",
       width: 300,
@@ -167,39 +170,31 @@ const Vaccine = () => {
         </Tooltip>
       ),
     },
-    // {
-    //     title: 'Age Range (years)',
-    //     key: 'age',
-    //     width: 150,
-    //     render: (_, record) => (
-    //         `${record.recAgeStart} - ${record.recAgeEnd}`
-    //     ),
-    // },
     {
-      title: "Quantity",
+      title: "Số lượng",
       dataIndex: "inStockNumber",
       key: "inStockNumber",
       width: 100,
     },
     {
-      title: "Price (VND)",
+      title: "Giá (VNĐ)",
       dataIndex: "price",
       key: "price",
       width: 120,
     },
     {
-      title: "Status",
+      title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       width: 120,
       render: (status) => (
         <Tag color={status === "Còn hàng" ? "green" : "red"}>
-          {status === "Còn hàng" ? "In Stock" : "Out of Stock"}
+          {status}
         </Tag>
       ),
     },
     {
-      title: "Actions",
+      title: "Thao tác",
       key: "action",
       width: 120,
       render: (_, record) => (
@@ -217,11 +212,12 @@ const Vaccine = () => {
               price: record.price,
               notes: record.notes || "",
               imageFile: null,
+              currentImageUrl: record.imageUrl
             });
             setIsUpdateModalVisible(true);
           }}
         >
-          Update
+          Cập nhật
         </Button>
       ),
     },
@@ -235,41 +231,41 @@ const Vaccine = () => {
       width: 70,
     },
     {
-      title: "Package Name",
+      title: "Tên gói",
       dataIndex: "name",
       key: "name",
       width: 200,
     },
     {
-      title: "Vaccine Count",
+      title: "Số lượng vắc xin",
       dataIndex: "vaccineCount",
       key: "vaccineCount",
       width: 150,
     },
     {
-      title: "Total Price (VND)",
+      title: "Tổng giá (VNĐ)",
       dataIndex: "totalPrice",
       key: "totalPrice",
       width: 150,
       render: (price) => price.toLocaleString("vi-VN"),
     },
     {
-      title: "Created Date",
+      title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       width: 120,
     },
     {
-      title: "Status",
+      title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       width: 120,
       render: (status) => (
-        <Tag color={status === "Active" ? "green" : "red"}>{status}</Tag>
+        <Tag color={status === "Active" ? "green" : "red"}>{status === "Active" ? "Đang hoạt động" : "Không hoạt động"}</Tag>
       ),
     },
     {
-      title: "Actions",
+      title: "Thao tác",
       key: "action",
       render: (_, record) => (
         <Button
@@ -277,7 +273,7 @@ const Vaccine = () => {
           type="primary"
           onClick={() => showDeleteConfirm(record.id)}
         >
-          Delete
+          Xóa
         </Button>
       ),
     },
@@ -311,17 +307,17 @@ const Vaccine = () => {
         width: 70,
       },
       {
-        title: "Vaccine Name",
+        title: "Tên vắc xin",
         dataIndex: "vaccineName",
         key: "name",
       },
       {
-        title: "Dose Number",
+        title: "Số liều",
         dataIndex: "doseNumber",
         key: "doseNumber",
       },
       {
-        title: "Price per Dose (VND)",
+        title: "Giá mỗi liều (VNĐ)",
         dataIndex: "pricePerDose",
         key: "price",
         render: (price) => price.toLocaleString("vi-VN"),
@@ -342,7 +338,7 @@ const Vaccine = () => {
     try {
       // Kiểm tra tên gói
       if (!packageName.trim()) {
-        message.error("Please enter the vaccine package name");
+        message.error("Vui lòng nhập tên gói vaccine");
         return;
       }
 
@@ -351,46 +347,29 @@ const Vaccine = () => {
         (v) => v.vaccineId && v.doseNumber > 0
       );
       if (validVaccines.length === 0) {
-        message.error("Please select at least one vaccine");
+        message.error("Vui lòng chọn ít nhất một vaccine");
         return;
       }
-
-      // Log để kiểm tra dữ liệu
-      console.log("Selected vaccines before mapping:", selectedVaccines);
 
       const payload = {
         name: packageName.trim(),
         vaccinePackageItems: selectedVaccines
           .filter((v) => v.vaccineId && v.doseNumber > 0)
           .map((item) => ({
-            vaccineId: Number(item.vaccineId), // Đảm bảo vaccineId là số
-            doseNumber: Number(item.doseNumber), // Đảm bảo doseNumber là số
+            vaccineId: Number(item.vaccineId),
+            doseNumber: Number(item.doseNumber),
           })),
       };
 
-      // Log payload trước khi gửi
-      console.log("Sending payload:", payload);
-
-      const response = await api.post("/VaccinePackage/create", payload);
-
-      // Log response
-      console.log("API Response:", response);
-
-      message.success("Vaccine package created successfully.");
+      await api.post("/VaccinePackage/create", payload);
+      message.success("Tạo gói vaccine thành công");
       setIsCreateModalVisible(false);
       setPackageName("");
       setSelectedVaccines([{ vaccineId: "", doseNumber: 1 }]);
-      fetchVaccinePackages(); // Refresh the list
+      fetchVaccinePackages();
     } catch (error) {
       console.error("Error creating vaccine package:", error);
-      // Log chi tiết lỗi
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-      }
-      message.error(
-        "An error occurred while creating the vaccine package: " +
-          (error.response?.data?.message || error.message)
-      );
+      message.error("Đã xảy ra lỗi khi tạo gói vaccine");
     }
   };
 
@@ -471,11 +450,11 @@ const Vaccine = () => {
       if (vaccineToUpdate.imageFile) {
         formData.append("ImageFile", vaccineToUpdate.imageFile);
       }
-      formData.append("RecAgeStart", vaccineToUpdate.recAgeStart);
-      formData.append("RecAgeEnd", vaccineToUpdate.recAgeEnd);
+      formData.append("RecAgeStart", vaccineToUpdate.recAgeStart || 0);
+      formData.append("RecAgeEnd", vaccineToUpdate.recAgeEnd || 0);
       formData.append("InStockNumber", vaccineToUpdate.inStockNumber);
       formData.append("Price", vaccineToUpdate.price);
-      formData.append("Notes", vaccineToUpdate.notes);
+      formData.append("Notes", vaccineToUpdate.notes || "");
 
       await api.put(`/Vaccine/update/${vaccineToUpdate.id}`, formData, {
         headers: {
@@ -485,7 +464,7 @@ const Vaccine = () => {
 
       message.success("Vaccine đã được cập nhật thành công");
       setIsUpdateModalVisible(false);
-      fetchVaccines(); // Refresh danh sách
+      fetchVaccines();
     } catch (error) {
       console.error("Error updating vaccine:", error);
       message.error("Đã xảy ra lỗi khi cập nhật vaccine");
@@ -497,15 +476,15 @@ const Vaccine = () => {
       <div className="admin">
         <div className="admin-vaccine-container">
           <div className="admin-vaccine-header">
-            <h2 className="admin-vaccine-title">Vaccine Management</h2>
+            <h2 className="admin-vaccine-title">Quản lý vắc xin</h2>
             <div className="admin-vaccine-controls">
               <Radio.Group
                 value={activeTab}
                 onChange={handleTabChange}
                 className="admin-vaccine-tabs"
               >
-                <Radio.Button value="vaccine">Vaccine</Radio.Button>
-                <Radio.Button value="package">Vaccine Package</Radio.Button>
+                <Radio.Button value="vaccine">Vắc xin</Radio.Button>
+                <Radio.Button value="package">Gói vắc xin</Radio.Button>
               </Radio.Group>
               {activeTab === "vaccine" ? (
                 <Button
@@ -513,7 +492,7 @@ const Vaccine = () => {
                   onClick={() => setIsCreateVaccineModalVisible(true)}
                   style={{ marginLeft: "16px" }}
                 >
-                  Create New Vaccine
+                  Thêm vắc xin mới
                 </Button>
               ) : (
                 <Button
@@ -521,7 +500,7 @@ const Vaccine = () => {
                   onClick={() => setIsCreateModalVisible(true)}
                   style={{ marginLeft: "16px" }}
                 >
-                  Create New Vaccine Package
+                  Thêm gói vắc xin mới
                 </Button>
               )}
             </div>
@@ -577,43 +556,56 @@ const Vaccine = () => {
         }}
         okText="Tạo"
         cancelText="Hủy"
+        className="admin-vaccine-modal"
+        style={{ top: '20px' }}
+        maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+        bodyStyle={{ padding: '20px' }}
       >
         <div style={{ marginBottom: "16px" }}>
-          <label>Tên gói:</label>
-          <Input
-            value={packageName}
-            onChange={(e) => setPackageName(e.target.value)}
-            placeholder="Nhập tên gói vaccine"
-          />
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", marginBottom: "4px" }}>Tên gói:</label>
+            <Input
+              value={packageName}
+              onChange={(e) => setPackageName(e.target.value)}
+              placeholder="Nhập tên gói vaccine"
+            />
+          </div>
         </div>
 
         {selectedVaccines.map((vaccine, index) => (
           <div key={index} style={{ marginBottom: "16px" }}>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-              <Select
-                style={{ flex: 1 }}
-                value={vaccine.vaccineId}
-                onChange={(value) =>
-                  updateVaccineField(index, "vaccineId", value)
-                }
-                placeholder="Chọn vaccine"
-              >
-                {vaccines.map((v) => (
-                  <Select.Option key={v.id} value={v.id}>
-                    {v.name}
-                  </Select.Option>
-                ))}
-              </Select>
-              <InputNumber
-                min={1}
-                value={vaccine.doseNumber}
-                onChange={(value) =>
-                  updateVaccineField(index, "doseNumber", value)
-                }
-                placeholder="Số liều"
-              />
+            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", marginBottom: "4px" }}>Vaccine:</label>
+                <Select
+                  style={{ width: "100%" }}
+                  value={vaccine.vaccineId}
+                  onChange={(value) => updateVaccineField(index, "vaccineId", value)}
+                  placeholder="Chọn vaccine"
+                >
+                  {vaccines.map((v) => (
+                    <Select.Option key={v.id} value={v.id}>
+                      {v.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+              <div style={{ width: "80px" }}>
+                <label style={{ display: "block", marginBottom: "4px" }}>Số liều:</label>
+                <InputNumber
+                  min={1}
+                  value={vaccine.doseNumber}
+                  onChange={(value) => updateVaccineField(index, "doseNumber", value)}
+                  placeholder="Số liều"
+                  style={{ width: "100%" }}
+                />
+              </div>
               {selectedVaccines.length > 1 && (
-                <Button onClick={() => removeVaccineField(index)} danger>
+                <Button 
+                  onClick={() => removeVaccineField(index)} 
+                  danger
+                  style={{ marginBottom: "1px" }}
+                >
                   Xóa
                 </Button>
               )}
@@ -622,7 +614,12 @@ const Vaccine = () => {
         ))}
 
         {selectedVaccines.length < 3 && (
-          <Button type="dashed" onClick={addVaccineField} block>
+          <Button 
+            type="dashed" 
+            onClick={addVaccineField} 
+            block
+            style={{ marginTop: "8px" }}
+          >
             Thêm vaccine
           </Button>
         )}
@@ -649,6 +646,10 @@ const Vaccine = () => {
         okText="Tạo"
         cancelText="Hủy"
         width={800}
+        className="admin-vaccine-modal"
+        style={{ top: '20px' }}
+        maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+        bodyStyle={{ padding: '20px' }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
@@ -772,6 +773,10 @@ const Vaccine = () => {
         okText="Cập nhật"
         cancelText="Hủy"
         width={800}
+        className="admin-vaccine-modal"
+        style={{ top: '20px' }}
+        maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+        bodyStyle={{ padding: '20px' }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
@@ -819,6 +824,16 @@ const Vaccine = () => {
 
           <div>
             <label>Hình ảnh:</label>
+            {vaccineToUpdate?.currentImageUrl && (
+              <div style={{ marginBottom: '10px' }}>
+                <Image
+                  src={vaccineToUpdate.currentImageUrl}
+                  alt="Current vaccine"
+                  style={{ width: 100, height: 100, objectFit: "cover" }}
+                />
+                <p style={{ marginTop: '5px', color: '#666' }}>Hình ảnh hiện tại</p>
+              </div>
+            )}
             <input
               type="file"
               onChange={(e) => {
@@ -831,6 +846,7 @@ const Vaccine = () => {
               }}
               accept="image/*"
             />
+            <p style={{ marginTop: '5px', color: '#666' }}>Chọn hình ảnh mới nếu muốn thay đổi</p>
           </div>
 
           <div style={{ display: "flex", gap: "16px" }}>

@@ -10,10 +10,10 @@ const Dashboard = () => {
     const PRIMARY_COLOR = '#00b894'; // This should match your sidebar color
     
     const [stats, setStats] = useState([
-        { name: 'Total Patients', value: 0, icon: <Users className="h-8 w-8" /> },
-        { name: 'Total Appointments', value: 0, icon: <Calendar className="h-8 w-8" /> },
-        { name: 'Total Vaccines', value: 0, icon: <Bed className="h-8 w-8" /> },
-        { name: 'Active Staff', value: 0, icon: <UserCheck className="h-8 w-8" /> },
+        { name: 'Tổng số bệnh nhân', value: 0, icon: <Users className="h-8 w-8" /> },
+        { name: 'Tổng số lịch hẹn', value: 0, icon: <Calendar className="h-8 w-8" /> },
+        { name: 'Tổng số vắc xin', value: 0, icon: <Bed className="h-8 w-8" /> },
+        { name: 'Nhân viên đang hoạt động', value: 0, icon: <UserCheck className="h-8 w-8" /> },
     ]);
     const [loading, setLoading] = useState(true);
     const [appointmentData, setAppointmentData] = useState([]);
@@ -47,7 +47,7 @@ const Dashboard = () => {
                 console.log('Today appointments:', appointments); // Debug log
                 setStats(prevStats => {
                     const newStats = [...prevStats];
-                    newStats[1] = { ...newStats[1], name: 'Total Appointments', value: appointments.length };
+                    newStats[1] = { ...newStats[1], value: appointments.length };
                     return newStats;
                 });
                 setAppointmentData(appointments);
@@ -97,20 +97,56 @@ const Dashboard = () => {
             return [];
         }
         
+        console.log('Raw appointment data:', appointmentData); // Log raw data
+        
         // Count appointments by status
         const statusCounts = appointmentData.reduce((acc, appointment) => {
-            const status = appointment.status || 'Unknown';
+            // Convert status to lowercase to handle case variations
+            const status = (appointment.status || 'Unknown').toLowerCase();
             acc[status] = (acc[status] || 0) + 1;
             return acc;
         }, {});
         
-        // Convert to array format for pie chart
-        const result = Object.entries(statusCounts).map(([status, count]) => ({
-            name: status,
-            value: count
-        }));
+        console.log('Status counts:', statusCounts); // Log counts
         
-        console.log('Appointment status data:', result); // Debug log
+        // Convert to array format for pie chart and translate status to Vietnamese
+        const result = Object.entries(statusCounts).map(([status, count]) => {
+            let translatedName;
+            switch(status.toLowerCase()) {
+                case 'pending':
+                    translatedName = 'Chờ xác nhận';
+                    break;
+                case 'confirmed':
+                    translatedName = 'Đã xác nhận';
+                    break;
+                case 'completed':
+                    translatedName = 'Hoàn thành';
+                    break;
+                case 'cancelled':
+                case 'canceled': // Handle both spellings
+                    translatedName = 'Đã hủy';
+                    break;
+                case 'processing':
+                    translatedName = 'Đang xử lý';
+                    break;
+                case 'rejected':
+                    translatedName = 'Từ chối';
+                    break;
+                case 'unknown':
+                    translatedName = 'Không xác định';
+                    break;
+                default:
+                    translatedName = status;
+                    console.log('Unhandled status:', status); // Log unhandled status
+            }
+            return {
+                name: translatedName,
+                value: count,
+                originalStatus: status // Keep original status for debugging
+            };
+        });
+        
+        console.log('Final processed data:', result); // Log final data
         return result;
     };
     
@@ -125,10 +161,10 @@ const Dashboard = () => {
         }, {});
         
         return Object.keys(roleCounts).map(role => ({
-            name: role === 'admin' ? 'Administrator' : 
-                  role === 'doctor' ? 'Doctor' : 
-                  role === 'staff' ? 'Staff' : 
-                  role === 'user' ? 'User' : role,
+            name: role === 'admin' ? 'Quản trị viên' : 
+                  role === 'doctor' ? 'Bác sĩ' : 
+                  role === 'staff' ? 'Nhân viên' : 
+                  role === 'user' ? 'Người dùng' : role,
             value: roleCounts[role]
         }));
     };
@@ -138,11 +174,11 @@ const Dashboard = () => {
         if (!vaccineData.length) return [];
         
         const ageRanges = [
-            { range: '0-1 years', min: 0, max: 1 },
-            { range: '1-2 years', min: 1, max: 2 },
-            { range: '2-5 years', min: 2, max: 5 },
-            { range: '5-10 years', min: 5, max: 10 },
-            { range: '10+ years', min: 10, max: 100 }
+            { range: '0-1 tuổi', min: 0, max: 1 },
+            { range: '1-2 tuổi', min: 1, max: 2 },
+            { range: '2-5 tuổi', min: 2, max: 5 },
+            { range: '5-10 tuổi', min: 5, max: 10 },
+            { range: '10+ tuổi', min: 10, max: 100 }
         ];
         
         const ageRangeCounts = ageRanges.map(range => {
@@ -172,7 +208,7 @@ const Dashboard = () => {
     return (
         <div className="admin">
             <div className="admin-dashboard-container">
-                <h1 className="admin-dashboard-title">Dashboard</h1>
+                <h1 className="admin-dashboard-title">Bảng điều khiển</h1>
                 {loading ? (
                     <div className="loading-container">
                         <Spin size="large" />
@@ -211,13 +247,13 @@ const Dashboard = () => {
                                     transitionDelay: '0.2s'
                                 }}
                             >
-                                <h2>Patient Gender Distribution</h2>
+                                <h2>Phân bố giới tính bệnh nhân</h2>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
                                         <Pie
                                             data={[
-                                                { name: 'Male', value: Math.round(stats[0].value * 0.55) },
-                                                { name: 'Female', value: Math.round(stats[0].value * 0.45) }
+                                                { name: 'Nam', value: Math.round(stats[0].value * 0.55) },
+                                                { name: 'Nữ', value: Math.round(stats[0].value * 0.45) }
                                             ]}
                                             cx="50%"
                                             cy="50%"
@@ -247,7 +283,7 @@ const Dashboard = () => {
                                     transitionDelay: '0.4s'
                                 }}
                             >
-                                <h2>All Appointments Status</h2>
+                                <h2>Trạng thái lịch hẹn</h2>
                                 {appointmentData.length > 0 ? (
                                     <ResponsiveContainer width="100%" height={250}>
                                         <PieChart>
@@ -260,6 +296,7 @@ const Dashboard = () => {
                                                 outerRadius={80}
                                                 fill="#8884d8"
                                                 dataKey="value"
+                                                nameKey="name"
                                                 animationBegin={0}
                                                 animationDuration={1500}
                                                 animationEasing="ease-out"
@@ -268,13 +305,13 @@ const Dashboard = () => {
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
-                                            <Tooltip />
-                                            <Legend />
+                                            <Tooltip formatter={(value, name) => [value, name]} />
+                                            <Legend formatter={(value) => value} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 ) : (
                                     <div style={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        No appointments available
+                                        Không có lịch hẹn nào
                                     </div>
                                 )}
                             </div>
@@ -287,7 +324,7 @@ const Dashboard = () => {
                                     transitionDelay: '0.6s'
                                 }}
                             >
-                                <h2>Vaccines by Age Range</h2>
+                                <h2>Vắc xin theo độ tuổi</h2>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <BarChart
                                         data={getVaccineAgeRangeData()}
@@ -318,7 +355,7 @@ const Dashboard = () => {
                                     transitionDelay: '0.8s'
                                 }}
                             >
-                                <h2>User Role Distribution</h2>
+                                <h2>Phân bố vai trò người dùng</h2>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
                                         <Pie
