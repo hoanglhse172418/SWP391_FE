@@ -447,9 +447,17 @@ const Vaccine = () => {
       formData.append("VaccineName", vaccineToUpdate.vaccineName);
       formData.append("Manufacture", vaccineToUpdate.manufacture);
       formData.append("Description", vaccineToUpdate.description);
+      
+      // Nếu có ảnh mới được chọn
       if (vaccineToUpdate.imageFile) {
         formData.append("ImageFile", vaccineToUpdate.imageFile);
+      } else {
+        // Nếu không có ảnh mới, tạo một Blob từ URL ảnh cũ
+        const response = await fetch(vaccineToUpdate.currentImageUrl);
+        const blob = await response.blob();
+        formData.append("ImageFile", blob, "current-image.jpg");
       }
+
       formData.append("RecAgeStart", vaccineToUpdate.recAgeStart || 0);
       formData.append("RecAgeEnd", vaccineToUpdate.recAgeEnd || 0);
       formData.append("InStockNumber", vaccineToUpdate.inStockNumber);
