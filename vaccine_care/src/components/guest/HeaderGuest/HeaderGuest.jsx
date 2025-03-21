@@ -14,27 +14,27 @@ const HeaderGuest = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const { isLoggedIn, logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
-  console.log("📌 Role của user trong HeaderGuest:", user?.role);
+  // console.log("📌 Role của user trong HeaderGuest:", user?.role);
   const toggleDrawer = () => {
     setDrawerOpen(!isDrawerOpen);
   };
 
   const handleLogout = async () => {
     try {
-      console.log("🔹 Đang gửi yêu cầu đăng xuất...");
+      // console.log("🔹 Đang gửi yêu cầu đăng xuất...");
       const token = localStorage.getItem("access_token");
       if (!token) {
-        console.warn("⚠️ Không tìm thấy token, tiến hành đăng xuất cục bộ.");
+        // console.warn("⚠️ Không tìm thấy token, tiến hành đăng xuất cục bộ.");
         logout();
         navigate("/");
         return;
       }
 
-      console.log("✅ Đăng xuất thành công từ API.");
+      // console.log("✅ Đăng xuất thành công từ API.");
       logout();
       navigate("/");
     } catch (error) {
-      console.error("❌ Lỗi khi đăng xuất:", error);
+      // console.error("❌ Lỗi khi đăng xuất:", error);
       logout();
       navigate("/");
     }

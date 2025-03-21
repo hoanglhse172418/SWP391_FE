@@ -22,26 +22,26 @@ function LoginPage() {
 
   const loginUser = async (userData) => {
     try {
-      console.log("🔹 Gửi dữ liệu đăng nhập:", userData);
+      // console.log("🔹 Gửi dữ liệu đăng nhập:", userData);
       const response = await api.post("/User/login", userData);
       
-      console.log("✅ Phản hồi từ API:", response.data); 
+      // console.log("✅ Phản hồi từ API:", response.data); 
   
       return response.data; 
     } catch (error) {
       console.error("❌ Lỗi đăng nhập:", error);
   
       if (error.response) {
-        console.error("🔹 Response Data:", error.response.data);
-        console.error("🔹 Status Code:", error.response.status);
-        console.error("🔹 Headers:", error.response.headers);
+        // console.error("🔹 Response Data:", error.response.data);
+        // console.error("🔹 Status Code:", error.response.status);
+        // console.error("🔹 Headers:", error.response.headers);
   
         throw new Error(error.response.data.message || `Lỗi ${error.response.status}: Đăng nhập thất bại!`);
       } else if (error.request) {
-        console.error("❌ Không nhận được phản hồi từ API:", error.request);
+        // console.error("❌ Không nhận được phản hồi từ API:", error.request);
         throw new Error("Máy chủ không phản hồi, vui lòng kiểm tra kết nối mạng.");
       } else {
-        console.error("❌ Lỗi khi gửi yêu cầu:", error.message);
+        // console.error("❌ Lỗi khi gửi yêu cầu:", error.message);
         throw new Error("Lỗi không xác định, vui lòng thử lại!");
       }
     }
@@ -86,23 +86,23 @@ function LoginPage() {
   
   const handleLogin = async () => {
     setError(null);
-    console.log("🔹 Dữ liệu gửi lên API:", formData);
+    // console.log("🔹 Dữ liệu gửi lên API:", formData);
 
     try {
       const token = await loginUser(formData);
-      console.log("✅ Token nhận được từ API:", token);
+      // console.log("✅ Token nhận được từ API:", token);
 
       if (typeof token === "string" && token.startsWith("ey")) {
-        console.log("✅ Token hợp lệ:", token);
+        // console.log("✅ Token hợp lệ:", token);
         login(token); // Lưu token vào context/localStorage
 
         // Giải mã token để lấy thông tin user
         const decodedToken = jwtDecode(token);
-        console.log("✅ Dữ liệu giải mã từ token:", decodedToken);
+        // console.log("✅ Dữ liệu giải mã từ token:", decodedToken);
 
         // Lấy role từ token (chú ý key role có dạng URL)
         const userRole = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-        console.log("🔹 Vai trò của user:", userRole);
+        // console.log("🔹 Vai trò của user:", userRole);
 
         if (!userRole) {
           throw new Error("Không tìm thấy role trong token!");
@@ -117,14 +117,14 @@ function LoginPage() {
         };
 
         const redirectPath = rolePaths[userRole] || "/";
-        console.log(`➡️ Điều hướng đến: ${redirectPath}`);
+        // console.log(`➡️ Điều hướng đến: ${redirectPath}`);
         navigate(redirectPath);
       } else {
-        console.error("❌ Token không hợp lệ:", token);
+        // console.error("❌ Token không hợp lệ:", token);
         throw new Error("API không trả về token hợp lệ.");
       }
     } catch (err) {
-      console.error("❌ Lỗi đăng nhập:", err.message);
+      // console.error("❌ Lỗi đăng nhập:", err.message);
       setError(err.message);
     }
   };

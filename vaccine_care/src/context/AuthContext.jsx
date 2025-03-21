@@ -86,15 +86,15 @@ export const AuthProvider = ({ children }) => {
       setIsLoggedIn(true);
       try {
         const decodedToken = jwtDecode(storedToken);
-        console.log("🔍 Token decoded:", decodedToken);
+        // console.log("🔍 Token decoded:", decodedToken);
 
         setUser({
           role: decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
         });
 
-        console.log("✅ User role from token:", decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]);
+        // console.log("✅ User role from token:", decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]);
       } catch (error) {
-        console.error("❌ Lỗi khi giải mã token:", error);
+        // console.error("❌ Lỗi khi giải mã token:", error);
         setUser(null);
       }
     }
@@ -106,15 +106,15 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(true);
     try {
       const decodedToken = jwtDecode(newToken);
-      console.log("🔍 Token decoded sau đăng nhập:", decodedToken);
+      // console.log("🔍 Token decoded sau đăng nhập:", decodedToken);
 
       setUser({
         role: decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
       });
 
-      console.log("✅ User role sau đăng nhập:", decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]);
+      // console.log("✅ User role sau đăng nhập:", decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]);
     } catch (error) {
-      console.error("❌ Lỗi khi giải mã token sau đăng nhập:", error);
+      // console.error("❌ Lỗi khi giải mã token sau đăng nhập:", error);
       setUser(null);
     }
   };
