@@ -572,17 +572,19 @@ const handleBooking = () => {
         </div>
                </div>
 
-{showModal && (
+               {showModal && (
   <div className="modal-overlay">
     <div className="modal-content">
       <h4>Cập nhật vaccine cho bệnh: {selectedDisease?.name} tại tháng {selectedMonth}</h4>
 
+      {/* Ngày tiêm thực tế nếu có */}
       {selectedRecord?.actualInjectionDate && (
         <div>
           <p><strong>Ngày tiêm thực tế:</strong> {new Date(selectedRecord.actualInjectionDate).toLocaleDateString()}</p>
         </div>
       )}
 
+      {/* Dropdown chọn vaccine */}
       <div className="form-group">
         <label><strong>Chọn Vaccine:</strong></label>
         <select
@@ -597,18 +599,26 @@ const handleBooking = () => {
         </select>
       </div>
 
-      {/* Chỉ hiển thị nút xóa nếu không có ngày tiêm thực tế */}
+      {/* Nút Xóa mũi tiêm (chỉ hiện nếu chưa tiêm thực tế) */}
       {selectedRecord && !selectedRecord.actualInjectionDate && (
         <button className="btn btn-danger mt-2" onClick={() => handleDelete(selectedRecord.id)}>
           Xóa mũi tiêm
         </button>
       )}
 
+      {/* Button actions */}
       <div className="VaccinPage-flex1 modal-buttons">
+        {/* Đóng modal */}
         <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
-        <button className="btn btn-success" onClick={handleSave}>Lưu</button>
-        
-        {/* Chỉ hiển thị nút "Đặt lịch tiêm" nếu chưa có ngày tiêm thực tế */}
+
+        {/* Nút Lưu chỉ hiển thị nếu: 
+            - Chưa tiêm thực tế
+            - Và chưa có vaccineId (tức là chưa lưu gì hết) */}
+        {!selectedRecord?.actualInjectionDate && !selectedRecord?.vaccineId && (
+          <button className="btn btn-success" onClick={handleSave}>Lưu</button>
+        )}
+
+        {/* Đặt lịch tiêm (chỉ hiện nếu chưa tiêm thực tế) */}
         {!selectedRecord?.actualInjectionDate && (
           <button className="btn btn-primary" onClick={handleBooking}>
             Đặt lịch tiêm
