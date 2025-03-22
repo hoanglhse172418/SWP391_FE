@@ -21,7 +21,7 @@ const Child = () => {
                 id: child.id,
                 name: child.childrenFullname,
                 dateOfBirth: new Date(child.dob).toLocaleDateString('vi-VN'),
-                gender: child.gender === 'Male' ? 'Nam' : 'Nữ',
+                gender: child.gender,
                 fatherName: child.fatherFullName,
                 motherName: child.motherFullName,
                 fatherPhone: child.fatherPhoneNumber,
