@@ -217,14 +217,20 @@ function HomePage() {
   {selectedPackage && (
     <div>
       <p><strong>Gói:</strong> {selectedPackage.name}</p>
-      <p><strong>Giá:</strong> {selectedPackage.price ? selectedPackage.price.toLocaleString() : "Chưa có giá"} VND</p>
+      <p><strong>Giá gói:</strong> {selectedPackage.price ? selectedPackage.price.toLocaleString() : "Chưa có giá"} VND</p>
+      <p><strong>Phí đặt giữ:</strong> {selectedPackage.fee ? selectedPackage.fee.toLocaleString() : "0"} VND</p>
+      
       <h4>Danh sách vắc xin:</h4>
       <ul>
-        {selectedPackage.vaccinePackageItems?.$values?.map((item, index) => (
-          <li key={index}>
-            {item.vaccineName} - 1 Mũi 
-          </li>
-        )) ?? <p>Không có dữ liệu vắc xin</p>}
+        {selectedPackage.vaccinePackageItems?.$values?.length > 0 ? (
+          selectedPackage.vaccinePackageItems.$values.map((item, index) => (
+            <li key={index}>
+              {item.vaccineName} - 1 Mũi ({item.pricePerDose.toLocaleString()} VND)
+            </li>
+          ))
+        ) : (
+          <p>Không có dữ liệu vắc xin</p>
+        )}
       </ul>
 
       {/* Lưu ý nổi bật */}
@@ -242,6 +248,7 @@ function HomePage() {
     </div>
   )}
 </Modal>
+
 
 </div>
 

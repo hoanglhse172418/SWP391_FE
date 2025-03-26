@@ -26,7 +26,7 @@ function ProfileChildPage() {
     try {
       const decoded = jwtDecode(token);
       userId = decoded.Id;
-      console.log("User ID from token:", userId);
+      // console.log("User ID from token:", userId);
     } catch (err) {
       console.error("❌ Lỗi giải mã token:", err);
       setError("Token không hợp lệ!");
@@ -40,7 +40,7 @@ function ProfileChildPage() {
         });
   
         const childrenArray = response.data.$values ? response.data.$values : response.data;
-        console.log("Tất cả hồ sơ trẻ:", childrenArray);
+        // console.log("Tất cả hồ sơ trẻ:", childrenArray);
         setChildrenData(childrenArray);
       } catch (err) {
         console.error("❌ Lỗi khi lấy dữ liệu trẻ em:", err);

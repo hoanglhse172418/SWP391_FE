@@ -34,7 +34,7 @@ function BookingPage() {
      // Nhận dữ liệu từ VaccinationSchedule    
     useEffect(() => {
         if (location.state) {
-            console.log("Dữ liệu nhận từ VaccinationSchedule:", location.state);
+            // console.log("Dữ liệu nhận từ VaccinationSchedule:", location.state);
     
             // Lưu childId nếu có và đồng bộ vào selectedChild
             if (location.state.childId) {
@@ -188,7 +188,7 @@ useEffect(() => {
               newDate: formatDate(appointmentDate), // Chuyển đổi ngày đúng format
             }];
       
-            console.log("Request Data (Cập nhật ngày tiêm):", requestData);
+            // console.log("Request Data (Cập nhật ngày tiêm):", requestData);
       
             await api.put('/Appointment/update-multiple-injection-dates', requestData, {
               headers: { Authorization: `Bearer ${token}` },
@@ -219,7 +219,7 @@ useEffect(() => {
           appointmentDate: formatDate(appointmentDate), // Đổi format ngày
         };
       
-        console.log("Request Data (Đặt lịch tiêm):", requestData);
+        // console.log("Request Data (Đặt lịch tiêm):", requestData);
       
         try {
           await api.post('/Appointment/book-appointment', requestData, {

@@ -72,7 +72,7 @@ const handleBooking = () => {
     console.warn("Không tìm thấy ngày dự kiến trong VaccineTemplate!");
   }
 
-  console.log("Ngày dự kiến gửi qua BookingPage:", expectedDate);
+  // console.log("Ngày dự kiến gửi qua BookingPage:", expectedDate);
 
   navigate(`/booking`, { 
     state: {
@@ -114,7 +114,7 @@ const handleBooking = () => {
     
     setSelectedRecord(existingRecord || null);
     setSelectedVaccine(existingRecord ? vaccineList.find(v => v.id === existingRecord.vaccineId)?.name : "");
-    console.log("Thông tin vaccine đã tiêm:", existingRecord);
+    // console.log("Thông tin vaccine đã tiêm:", existingRecord);
     setShowModal(true);
   };
 
@@ -131,13 +131,13 @@ const handleBooking = () => {
       month: selectedMonth,
     };
   
-    console.log("🔹 Dữ liệu gửi đi (Tạo mới):", JSON.stringify(newRecord, null, 2));
+    // console.log("🔹 Dữ liệu gửi đi (Tạo mới):", JSON.stringify(newRecord, null, 2));
   
     try {
       const response = await api.post(`/VaccinationDetail/create`, newRecord);
   
       if (response.status === 201) {
-        console.log("✅ Phản hồi từ server (Tạo mới):", response.data);
+        // console.log("✅ Phản hồi từ server (Tạo mới):", response.data);
        
       } else {
         console.warn("⚠️ Phản hồi không mong muốn từ server (Tạo mới):", response);
@@ -229,7 +229,7 @@ const handleBooking = () => {
       try {
         const response = await api.put(`/VaccinationDetail/update/${existingRecord.id}`, updateRecord);
         if (response.status === 200 || response.status === 204) {
-          console.log("✅ Cập nhật thành công:", response.data);
+          // console.log("✅ Cập nhật thành công:", response.data);
           setNotification({ message: "Cập nhật thành công!", type: "success" });
   
           // Cập nhật state mà không cần reload toàn bộ trang
@@ -248,7 +248,7 @@ const handleBooking = () => {
       }
     } else {
       // Nếu không có bản ghi -> tạo mới
-      console.log("🆕 Không có bản ghi, chuyển sang tạo mới!");
+      // console.log("🆕 Không có bản ghi, chuyển sang tạo mới!");
       handleCreate();
     }
   };
@@ -264,7 +264,7 @@ const handleBooking = () => {
         setNotification({ message: "Xóa thất bại!", type: "error" });
       }
     } catch (error) {
-      console.error("Error deleting vaccination record:", error);
+      // console.error("Error deleting vaccination record:", error);
       setNotification({ message: "Có lỗi xảy ra!", type: "error" });
     }
   };
@@ -571,48 +571,65 @@ const handleBooking = () => {
           </div>
         </div>
                </div>
-{showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h4>Cập nhật vaccine cho bệnh: {selectedDisease?.name} tại tháng {selectedMonth}</h4>
 
-            {selectedRecord?.actualInjectionDate && (
-  <div>
-    <p><strong>Ngày tiêm thực tế:</strong> {new Date(selectedRecord.actualInjectionDate).toLocaleDateString()}</p>
+               {showModal && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <h4>Cập nhật vaccine cho bệnh: {selectedDisease?.name} tại tháng {selectedMonth}</h4>
+
+      {/* Ngày tiêm thực tế nếu có */}
+      {selectedRecord?.actualInjectionDate && (
+        <div>
+          <p><strong>Ngày tiêm thực tế:</strong> {new Date(selectedRecord.actualInjectionDate).toLocaleDateString()}</p>
+        </div>
+      )}
+
+      {/* Dropdown chọn vaccine */}
+      <div className="form-group">
+        <label><strong>Chọn Vaccine:</strong></label>
+        <select
+          className="form-control"
+          value={selectedVaccine}
+          onChange={(e) => setSelectedVaccine(e.target.value)}
+        >
+          <option value="">Chọn vaccine</option>
+          {vaccineList.map((vaccine) => (
+            <option key={vaccine.id} value={vaccine.name}>{vaccine.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Nút Xóa mũi tiêm (chỉ hiện nếu chưa tiêm thực tế) */}
+      {selectedRecord && !selectedRecord.actualInjectionDate && (
+        <button className="btn btn-danger mt-2" onClick={() => handleDelete(selectedRecord.id)}>
+          Xóa mũi tiêm
+        </button>
+      )}
+
+      {/* Button actions */}
+      <div className="VaccinPage-flex1 modal-buttons">
+        {/* Đóng modal */}
+        <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
+
+        {/* Nút Lưu chỉ hiển thị nếu: 
+            - Chưa tiêm thực tế
+            - Và chưa có vaccineId (tức là chưa lưu gì hết) */}
+        {!selectedRecord?.actualInjectionDate && !selectedRecord?.vaccineId && (
+          <button className="btn btn-success" onClick={handleSave}>Lưu</button>
+        )}
+
+        {/* Đặt lịch tiêm (chỉ hiện nếu chưa tiêm thực tế) */}
+        {!selectedRecord?.actualInjectionDate && (
+          <button className="btn btn-primary" onClick={handleBooking}>
+            Đặt lịch tiêm
+          </button>
+        )}
+      </div>
+    </div>
   </div>
 )}
 
 
-            <div className="form-group">
-              <label><strong>Chọn Vaccine:</strong></label>
-              <select
-                className="form-control"
-                value={selectedVaccine}
-                onChange={(e) => setSelectedVaccine(e.target.value)}
-              >
-                <option value="">Chọn vaccine</option>
-                {vaccineList.map((vaccine) => (
-                  <option key={vaccine.id} value={vaccine.name}>{vaccine.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {selectedRecord && (
-              <button className="btn btn-danger mt-2" onClick={() => handleDelete(selectedRecord.id)}>
-                Xóa mũi tiêm
-              </button>
-            )}
-
-            <div className="VaccinPage-flex1 modal-buttons">
-              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
-              <button className="btn btn-success" onClick={handleSave}>Lưu</button>
-              <button className="btn btn-primary" onClick={handleBooking}>
-                Đặt lịch tiêm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

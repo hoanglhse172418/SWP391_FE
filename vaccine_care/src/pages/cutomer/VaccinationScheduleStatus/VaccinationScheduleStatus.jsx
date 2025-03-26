@@ -3,6 +3,7 @@ import { AuthContext } from "../../../context/AuthContext";
 import api from "../../../services/api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal, Button } from "react-bootstrap";
+import "./VaccinationScheduleStatus.css"
 
 function VaccinationScheduleStatus() {
   const { token } = useContext(AuthContext);
@@ -134,19 +135,22 @@ function VaccinationScheduleStatus() {
             {singleAppointments
               .filter((s) => s.customer.toLowerCase().includes(searchTerm.toLowerCase()))
               .map((schedule) => (
-                <div className="card mb-4 shadow" key={schedule.id}>
-                  <div className="card-body">
-                    <h5 className="card-title">{schedule.customer}</h5>
-                    <p><strong>Vắc xin:</strong> {schedule.vaccine}</p>
-                    <p><strong>Ngày tiêm:</strong> {schedule.date}</p>
-                    <p><strong>Trạng thái:</strong> {getStatusBadge(schedule.status)}</p>
-                    {schedule.status !== "Canceled" && schedule.status !== "Completed" && (
-                      <button className="btn btn-danger" onClick={() => { setSelectedInjection(schedule); setShowModal(true); }}>
-                        Hủy
-                      </button>
-                    )}
-                  </div>
-                </div>
+<div className="card mb-4 shadow position-relative" key={schedule.id}>
+  <div className="card-body">
+    <button 
+      className="btn btn-danger cancel-btn" 
+      onClick={() => { setSelectedInjection(schedule); setShowModal(true); }}
+      style={{ display: schedule.status === "Canceled" || schedule.status === "Completed" ? "none" : "block" }}
+    >
+      Hủy
+    </button>
+    <h5 className="card-title">{schedule.customer}</h5>
+    <p><strong>Vắc xin:</strong> {schedule.vaccine}</p>
+    <p><strong>Ngày tiêm:</strong> {schedule.date}</p>
+    <p><strong>Trạng thái:</strong> {getStatusBadge(schedule.status)}</p>
+  </div>
+</div>
+
               ))}
           </div>
         )}

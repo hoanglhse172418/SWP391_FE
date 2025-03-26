@@ -28,7 +28,7 @@ const VaccineList = () => {
             }))
           )
           .catch((error) => {
-            console.error(`Lỗi khi lấy vắc xin cho bệnh ${disease.name}:`, error);
+            // console.error(`Lỗi khi lấy vắc xin cho bệnh ${disease.name}:`, error);
             return [];
           })
       );
