@@ -8,7 +8,7 @@ const Child = () => {
     const [children, setChildren] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const getAllChildren = () => api.get('/Child/get-all');
+    const getAllChildren = () => api.get('/Child/get-all')
 
     useEffect(() => {
         fetchChildren();
