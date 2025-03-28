@@ -37,21 +37,17 @@ const Injection = () => {
   useEffect(() => {
     let interval;
 
-    const fetchAndUpdate = async () => {
+    const fetchTodayAndUpcoming = async () => {
       if (activeTab === "today") {
-        await fetchAppointments(
-          "/Appointment/get-appointment-today"
-        );
+        await fetchAppointments("/Appointment/get-appointment-today");
       } else {
-        await fetchAppointments(
-          "/Appointment/get-appointment-future"
-        );
+        await fetchAppointments("/Appointment/get-appointment-future");
       }
     };
 
-    fetchAndUpdate(); // Gọi ngay lần đầu tiên
+    fetchTodayAndUpcoming(); // Gọi ngay lần đầu tiên
 
-    interval = setInterval(fetchAndUpdate, 5000); // Cập nhật mỗi 5 giây, nhưng chỉ khi có thay đổi
+    interval = setInterval(fetchTodayAndUpcoming, 5000); // Cập nhật mỗi 5 giây, nhưng chỉ khi có thay đổi
 
     return () => clearInterval(interval);
   }, [activeTab]); // Chỉ theo dõi activeTab
@@ -73,15 +69,12 @@ const Injection = () => {
         formattedData.sort((a, b) => b.id - a.id);
         const newDataString = JSON.stringify(formattedData);
         if (newDataString !== prevDataString) {
-          setLoading(true);
           setData(formattedData);
           setPrevDataString(newDataString);
         }
       }
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -93,9 +86,7 @@ const Injection = () => {
   };
   const fetchAppointmentDetails = async (id) => {
     try {
-      const response = await api.get(
-        `/Appointment/get-by-id/${id}`
-      );
+      const response = await api.get(`/Appointment/get-by-id/${id}`);
       const details = response.data;
       setAppointmentDetails(details); // Lưu dữ liệu chi tiết
 
@@ -189,9 +180,10 @@ const Injection = () => {
       cancelText: "Không",
       onOk: async () => {
         try {
-          const response = await api.put(`/Appointment/cancel-appointment/${id}`);
+          const response = await api.put(
+            `/Appointment/cancel-appointment/${id}`
+          );
           if (response.status === 200) {
-            
             // Cập nhật UI sau khi API thành công
             setData((prevData) =>
               prevData.map((item) =>
@@ -205,7 +197,6 @@ const Injection = () => {
       },
     });
   };
-  
 
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -321,6 +312,9 @@ const Injection = () => {
           rowKey={(record) => record.id}
           dataSource={data}
           loading={loading}
+          locale={{
+            emptyText: "Không có lịch hẹn",
+          }}
         />
       </div>
       {selectedRecord && (

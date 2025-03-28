@@ -1,6 +1,6 @@
 import "./Invoice.css";
 import { useEffect, useRef, useState } from "react";
-import { Table, Radio, Tag } from "antd";
+import { Table, Radio, Tag, notification } from "antd";
 import api from "../../../services/api";
 
 const Invoice = ({ record, details }) => {
@@ -76,6 +76,13 @@ const Invoice = ({ record, details }) => {
   ];
 
   const handleConfirmPayment = async () => {
+    if (!paymentMethod) {
+      notification.error({
+        message: "Vui lòng chọn hình thức thanh toán!",
+      });
+      return;
+    }
+
     try {
       const response = await api.put(
         `/Payment/update-status-payment-status/confirm-payment`,
@@ -83,7 +90,7 @@ const Invoice = ({ record, details }) => {
         {
           params: {
             appointmentId: record.id,
-            paymentMethod, // Giá trị đã chọn từ Radio Group
+            paymentMethod, 
           },
         }
       );
@@ -93,7 +100,9 @@ const Invoice = ({ record, details }) => {
       fetchInvoiceData();
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái thanh toán:", error);
-      alert("Có lỗi xảy ra, vui lòng thử lại!");
+      notification.error({
+        message: "Có lỗi xảy ra, vui lòng thử lại!",
+      });
     }
   };
 
@@ -158,6 +167,7 @@ const Invoice = ({ record, details }) => {
               type="submit"
               className="button_payment"
               onClick={handleConfirmPayment}
+              disabled={!paymentMethod}
             >
               Xác nhận thanh toán
             </button>
