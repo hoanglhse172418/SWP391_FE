@@ -107,6 +107,11 @@
     color: var(--primary-colorVaccine);
   }
   
+  .button_payment.disabled {
+    background-color: #ccc !important;
+    color: #666 !important;
+    cursor: not-allowed;
+  }
   :where(.css-dev-only-do-not-override-1yacf91).ant-radio-wrapper .ant-radio-checked .ant-radio-inner {
       border-color: var(--primary-colorVaccine) !important;
       background-color: var(--primary-colorVaccine) !important;

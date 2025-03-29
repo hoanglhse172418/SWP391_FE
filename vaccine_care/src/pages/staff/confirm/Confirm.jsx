@@ -295,10 +295,25 @@ const Confirm = ({ record }) => {
     const doctorObj = listDoctors.find((d) => d.name === appointment.doctor);
     const roomObj = listRooms.find((r) => r.name === appointment.room);
 
+    // Kiểm tra nếu chưa chọn bác sĩ hoặc phòng
+  if (!doctorObj) {
+    notification.error({
+      message: "Vui lòng chọn bác sĩ trước khi xác nhận.",
+    });
+    return;
+  }
+
+  if (!roomObj) {
+    notification.error({
+      message: "Vui lòng chọn số phòng trước khi xác nhận.",
+    });
+    return;
+  }
+
     const payload = {
       vaccineId: appointment.vaccineId,
-      doctorId: doctorObj ? doctorObj.id : null, // Lấy ID của bác sĩ
-      roomId: roomObj?.id || null, // Lấy ID của phòng
+      doctorId: doctorObj.id, // Lấy ID của bác sĩ
+      roomId: roomObj.id, // Lấy ID của phòng
     };
 
     api

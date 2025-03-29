@@ -116,7 +116,7 @@ const Inject = ({ record }) => {
       );
 
       const records = response.data.$values || [];
-      console.log("Updated Vaccine Profile: ", records);
+      // console.log("Updated Vaccine Profile: ", records);
 
       setVaccinationRecords(records); // Cập nhật UI ngay lập tức
     } catch (error) {
@@ -154,7 +154,7 @@ const Inject = ({ record }) => {
         dateInjection: item.dateInjection,
         status: item.status,
       }));
-      console.log("kết quả: ", result);
+      // console.log("kết quả: ", result);
 
       setVaccineData(result);
     } catch (error) {
@@ -201,7 +201,9 @@ const Inject = ({ record }) => {
       .map(([appointmentId, newDate]) => {
         const parsedDate = new Date(newDate);
         if (isNaN(parsedDate.getTime())) {
-          alert("Ngày không hợp lệ! Vui lòng kiểm tra lại.");
+          notification.error({
+            message: "Ngày không hợp lệ! Vui lòng kiểm tra lại.",
+          });
           return null;
         }
         return {
@@ -224,25 +226,30 @@ const Inject = ({ record }) => {
       );
 
       if (response.status === 200) {
-        alert("Cập nhật thành công!");
+        notification.success({
+          message: "Cập nhật thành công",
+        });
         setEditingDates({}); // Xóa trạng thái chỉnh sửa
         fetchVaccineData(); // Load lại danh sách mới từ API
       } else {
-        alert("Cập nhật thất bại! Vui lòng thử lại.");
+        notification.error({
+          message: "Cập nhật thất bại, vui lòng thử lại!",
+        });
       }
     } catch (error) {
       console.error("Lỗi khi cập nhật:", error);
-      alert("Lỗi kết nối! Vui lòng thử lại.");
+      notification.error({
+        message: "Lỗi kết nối! Vui lòng thử lại.",
+      });
     }
   };
 
   const handleSaveDatesExpectedDate = async () => {
-    console.log("Dữ liệu trước khi cập nhật:", editingDate);
+    // console.log("Dữ liệu trước khi cập nhật:", editingDate);
 
     if (!editingDate || Object.keys(editingDate).length === 0) {
       notification.warning({
-        message: "Không có dữ liệu",
-        description: "Vui lòng chọn ngày trước khi lưu!",
+        message: "Vui lòng chọn ngày trước khi lưu!",
       });
       return;
     }
@@ -260,7 +267,7 @@ const Inject = ({ record }) => {
       })
       .filter(Boolean); // Lọc các giá trị null
 
-    console.log("Danh sách cập nhật gửi lên API:", updates);
+    // console.log("Danh sách cập nhật gửi lên API:", updates);
 
     try {
       await Promise.all(
@@ -268,7 +275,7 @@ const Inject = ({ record }) => {
           const url = `/VaccinationDetail/update-expected-date-by-doctor/${id}?expectedDay=${encodeURIComponent(
             expectedDay
           )}`;
-          console.log(`Gửi API: ${url}`);
+          // console.log(`Gửi API: ${url}`);
 
           const response = await api.put(url);
 
@@ -278,7 +285,6 @@ const Inject = ({ record }) => {
 
       notification.success({
         message: "Cập nhật thành công",
-        description: "Ngày dự kiến tiêm đã được cập nhật!",
       });
 
       fetchUpdatedVaccinationRecords(); // Load lại danh sách
@@ -619,11 +625,43 @@ const Inject = ({ record }) => {
                               <td>Tiêm mũi {doseCount[item.diseaseId]}</td>
 
                               <td>
-                                {item.expectedInjectionDate
-                                  ? new Date(
-                                      item.expectedInjectionDate
-                                    ).toLocaleDateString("vi-VN")
-                                  : "Chưa có lịch"}
+                                {editingId === item.id && !item.vaccineId ? (
+                                  <input
+                                    type="date"
+                                    className="modal-input-date"
+                                    value={editingDate[item.id] || ""}
+                                    onChange={(e) =>
+                                      setEditingDate({
+                                        ...editingDate,
+                                        [item.id]: e.target.value,
+                                      })
+                                    }
+                                    onBlur={() => setEditingId(null)}
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <span
+                                    onClick={() => {
+                                      if (!item.vaccineId) {
+                                        handleEditDateExpectedDate(
+                                          item.id,
+                                          item.expectedInjectionDate
+                                        );
+                                      }
+                                    }}
+                                    style={{
+                                      cursor: item.vaccineId
+                                        ? "default"
+                                        : "pointer",
+                                    }}
+                                  >
+                                    {item.expectedInjectionDate
+                                      ? new Date(
+                                          item.expectedInjectionDate
+                                        ).toLocaleDateString("vi-VN")
+                                      : "Chưa có lịch"}
+                                  </span>
+                                )}
                               </td>
 
                               <td>
@@ -661,93 +699,93 @@ const Inject = ({ record }) => {
                 </button>
               </div>
             </div>
-            {appointment.vaccineType !== "Single" && 
+            {appointment.vaccineType !== "Single" &&
               vaccineData.length > 0 &&
-              !vaccineData.every((item) => item.status === "Completed") &&(
-              <div className="modal-tabel-2">
-                <div className="modal-pkg">
-                  <p>
-                    <strong>Gói đã mua:</strong>{" "}
-                    {appointment.vaccinePackageName}
-                  </p>
-                </div>
-                <div className="modal-table-container">
-                  <table className="modal-table">
-                    <thead>
-                      <tr>
-                        <th>Vắc xin</th>
-                        <th>Ngày tiêm</th>
-                        <th>Trạng thái</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {vaccineData.map((item, index) => (
-                        <tr key={index}>
-                          <td>
-                            {`Mũi ${index + 1}:`}{" "}
-                            {getVaccineName(item.vaccineId)}
-                          </td>
-
-                          <td>
-                            {editingId === item.appointmentId &&
-                            item.status !== "Completed" ? (
-                              <input
-                                className="modal-input-date"
-                                type="date"
-                                value={editingDates[item.appointmentId]}
-                                onChange={(e) =>
-                                  setEditingDates({
-                                    ...editingDates,
-                                    [item.appointmentId]: e.target.value,
-                                  })
-                                }
-                                onBlur={() => setEditingId(null)} // Khi click ra ngoài thì ẩn input
-                                autoFocus // Tự động focus vào input khi mở
-                              />
-                            ) : (
-                              <span
-                                onClick={() =>
-                                  item.status !== "Completed" &&
-                                  handleEditDatePackage(
-                                    item.appointmentId,
-                                    item.dateInjection
-                                  )
-                                } // Không cho chỉnh sửa nếu đã hoàn thành
-                                style={{
-                                  cursor:
-                                    item.status === "Completed"
-                                      ? "default"
-                                      : "pointer",
-                                }} // Đổi con trỏ chuột
-                              >
-                                {item.dateInjection
-                                  ? new Date(
-                                      item.dateInjection
-                                    ).toLocaleDateString("vi-VN")
-                                  : "Chưa có lịch"}
-                              </span>
-                            )}
-                          </td>
-                          <td
-                            className={`modal-status-${item.status.toLowerCase()}`}
-                          >
-                            {getStatusText(item.status)}
-                          </td>
+              !vaccineData.every((item) => item.status === "Completed") && (
+                <div className="modal-tabel-2">
+                  <div className="modal-pkg">
+                    <p>
+                      <strong>Gói đã mua:</strong>{" "}
+                      {appointment.vaccinePackageName}
+                    </p>
+                  </div>
+                  <div className="modal-table-container">
+                    <table className="modal-table">
+                      <thead>
+                        <tr>
+                          <th>Vắc xin</th>
+                          <th>Ngày tiêm</th>
+                          <th>Trạng thái</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {vaccineData.map((item, index) => (
+                          <tr key={index}>
+                            <td>
+                              {`Mũi ${index + 1}:`}{" "}
+                              {getVaccineName(item.vaccineId)}
+                            </td>
+
+                            <td>
+                              {editingId === item.appointmentId &&
+                              item.status !== "Completed" ? (
+                                <input
+                                  className="modal-input-date"
+                                  type="date"
+                                  value={editingDates[item.appointmentId]}
+                                  onChange={(e) =>
+                                    setEditingDates({
+                                      ...editingDates,
+                                      [item.appointmentId]: e.target.value,
+                                    })
+                                  }
+                                  onBlur={() => setEditingId(null)} // Khi click ra ngoài thì ẩn input
+                                  autoFocus // Tự động focus vào input khi mở
+                                />
+                              ) : (
+                                <span
+                                  onClick={() =>
+                                    item.status !== "Completed" &&
+                                    handleEditDatePackage(
+                                      item.appointmentId,
+                                      item.dateInjection
+                                    )
+                                  } // Không cho chỉnh sửa nếu đã hoàn thành
+                                  style={{
+                                    cursor:
+                                      item.status === "Completed"
+                                        ? "default"
+                                        : "pointer",
+                                  }}
+                                >
+                                  {item.dateInjection
+                                    ? new Date(
+                                        item.dateInjection
+                                      ).toLocaleDateString("vi-VN")
+                                    : "Chưa có lịch"}
+                                </span>
+                              )}
+                            </td>
+                            <td
+                              className={`modal-status-${item.status.toLowerCase()}`}
+                            >
+                              {getStatusText(item.status)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="VaccinPage-flex1 modal-buttons">
+                    <button
+                      className="btn-save-inject"
+                      onClick={handleSaveDatesPackage}
+                    >
+                      Lưu
+                    </button>
+                  </div>
                 </div>
-                <div className="VaccinPage-flex1 modal-buttons">
-                  <button
-                    className="btn-save-inject"
-                    onClick={handleSaveDatesPackage}
-                  >
-                    Lưu
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       )}
