@@ -27,11 +27,22 @@
     display: flex;
     align-items: center;
     border: 1px solid #e5e7eb;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.admin .admin-dashboard-stat-card.animate-in {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .admin .admin-dashboard-stat-icon {
     margin-right: 16px;
     color: var(--primary-colorVaccine);
+    background: #f0f9ff;
+    padding: 15px;
+    border-radius: 10px;
 }
 
 .admin .admin-dashboard-stat-info h2 {
@@ -201,6 +212,14 @@
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.admin .admin-dashboard-chart-card.animate-in {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .admin .admin-dashboard-chart-card h2 {
@@ -214,5 +233,15 @@
 @media (max-width: 1024px) {
     .admin .admin-dashboard-charts-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin .admin-dashboard-stat-card {
+        padding: 15px;
+    }
+    
+    .admin .admin-dashboard-stat-info h2 {
+        font-size: 20px;
     }
 }

@@ -19,7 +19,10 @@ const Dashboard = () => {
     const [appointmentData, setAppointmentData] = useState([]);
     const [vaccineData, setVaccineData] = useState([]);
     const [userData, setUserData] = useState([]);
-    const [chartVisible, setChartVisible] = useState(false);
+    const [animationState, setAnimationState] = useState({
+        stats: false,
+        charts: false
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -32,8 +35,6 @@ const Dashboard = () => {
                     api.get('/User/get-all').catch(() => ({ data: { $values: [] } }))
                 ]);
                 
-                console.log('Appointments Response:', appointmentsData); // Debug log
-                
                 // Process patients data
                 const totalPatients = patientsData.data?.$values?.length || 0;
                 setStats(prevStats => {
@@ -44,7 +45,6 @@ const Dashboard = () => {
                 
                 // Process appointments data
                 const appointments = appointmentsData.data?.$values || [];
-                console.log('Today appointments:', appointments); // Debug log
                 setStats(prevStats => {
                     const newStats = [...prevStats];
                     newStats[1] = { ...newStats[1], value: appointments.length };
@@ -73,6 +73,12 @@ const Dashboard = () => {
                 });
                 setUserData(users);
                 
+                // Set loading to false and show charts regardless of appointments
+                setLoading(false);
+                // Trigger animations in sequence
+                setTimeout(() => setAnimationState(prev => ({ ...prev, stats: true })), 100);
+                setTimeout(() => setAnimationState(prev => ({ ...prev, charts: true })), 500);
+                
             } catch (error) {
                 console.error('Error fetching data:', error);
                 // Nếu có lỗi, set tất cả giá trị về 0
@@ -80,11 +86,10 @@ const Dashboard = () => {
                 setAppointmentData([]);
                 setVaccineData([]);
                 setUserData([]);
-            } finally {
                 setLoading(false);
-                setTimeout(() => {
-                    setChartVisible(true);
-                }, 100);
+                // Still trigger animations even on error
+                setTimeout(() => setAnimationState(prev => ({ ...prev, stats: true })), 100);
+                setTimeout(() => setAnimationState(prev => ({ ...prev, charts: true })), 500);
             }
         };
 
@@ -198,13 +203,6 @@ const Dashboard = () => {
     // Colors for charts - Sử dụng PRIMARY_COLOR thay cho màu xanh lá
     const COLORS = ['#8884d8', PRIMARY_COLOR, '#ffc658', '#ff8042', '#a4de6c', '#d884d8', '#4de6c9'];
 
-    // Thêm CSS cho animation
-    const chartCardStyle = {
-        opacity: chartVisible ? 1 : 0,
-        transform: chartVisible ? 'translateY(0)' : 'translateY(20px)',
-        transition: 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out'
-    };
-
     return (
         <div className="admin">
             <div className="admin-dashboard-container">
@@ -219,12 +217,9 @@ const Dashboard = () => {
                             {stats.map((stat, index) => (
                                 <div 
                                     key={index} 
-                                    className="admin-dashboard-stat-card"
+                                    className={`admin-dashboard-stat-card ${animationState.stats ? 'animate-in' : ''}`}
                                     style={{
-                                        opacity: chartVisible ? 1 : 0,
-                                        transform: chartVisible ? 'translateY(0)' : 'translateY(20px)',
-                                        transition: `opacity 0.5s ease-in-out, transform 0.5s ease-in-out`,
-                                        transitionDelay: `${index * 0.1}s`
+                                        transitionDelay: `${index * 100}ms`
                                     }}
                                 >
                                     <div className="admin-dashboard-stat-icon">
@@ -241,11 +236,8 @@ const Dashboard = () => {
                         <div className="admin-dashboard-charts-grid">
                             {/* Chart 1: Patients by Gender */}
                             <div 
-                                className="admin-dashboard-chart-card"
-                                style={{
-                                    ...chartCardStyle,
-                                    transitionDelay: '0.2s'
-                                }}
+                                className={`admin-dashboard-chart-card ${animationState.charts ? 'animate-in' : ''}`}
+                                style={{ transitionDelay: '200ms' }}
                             >
                                 <h2>Phân bố giới tính bệnh nhân</h2>
                                 <ResponsiveContainer width="100%" height={250}>
@@ -277,11 +269,8 @@ const Dashboard = () => {
                             
                             {/* Chart 2: Appointment Status */}
                             <div 
-                                className="admin-dashboard-chart-card"
-                                style={{
-                                    ...chartCardStyle,
-                                    transitionDelay: '0.4s'
-                                }}
+                                className={`admin-dashboard-chart-card ${animationState.charts ? 'animate-in' : ''}`}
+                                style={{ transitionDelay: '400ms' }}
                             >
                                 <h2>Trạng thái lịch hẹn</h2>
                                 {appointmentData.length > 0 ? (
@@ -318,11 +307,8 @@ const Dashboard = () => {
                             
                             {/* Chart 3: Vaccines by Age Range */}
                             <div 
-                                className="admin-dashboard-chart-card"
-                                style={{
-                                    ...chartCardStyle,
-                                    transitionDelay: '0.6s'
-                                }}
+                                className={`admin-dashboard-chart-card ${animationState.charts ? 'animate-in' : ''}`}
+                                style={{ transitionDelay: '600ms' }}
                             >
                                 <h2>Vắc xin theo độ tuổi</h2>
                                 <ResponsiveContainer width="100%" height={250}>
@@ -349,11 +335,8 @@ const Dashboard = () => {
                             
                             {/* Chart 4: User Roles */}
                             <div 
-                                className="admin-dashboard-chart-card"
-                                style={{
-                                    ...chartCardStyle,
-                                    transitionDelay: '0.8s'
-                                }}
+                                className={`admin-dashboard-chart-card ${animationState.charts ? 'animate-in' : ''}`}
+                                style={{ transitionDelay: '800ms' }}
                             >
                                 <h2>Phân bố vai trò người dùng</h2>
                                 <ResponsiveContainer width="100%" height={250}>
