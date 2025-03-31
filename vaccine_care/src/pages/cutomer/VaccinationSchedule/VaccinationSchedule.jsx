@@ -369,7 +369,7 @@ const handleBooking = () => {
     <div className="HomePage-Allcontainer">
        <Notification notification={notification} />
       <div className="VaccinationPage container">
-        <h3 className="text-center VaccinPage-Intro text-white p-2">LỊCH TIÊM CHỦNG CHO TRẺ TỪ 0-12 tháng</h3>
+        <h3 className="text-center VaccinPage-Intro text-white p-2">HỒ SƠ TIÊM CHỦNG CHO TRẺ TỪ 0-12 tháng</h3>
         <div className="table-responsive">
 
 
