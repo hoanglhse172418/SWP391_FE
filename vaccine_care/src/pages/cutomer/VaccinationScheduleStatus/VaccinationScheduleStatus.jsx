@@ -39,6 +39,7 @@ function VaccinationScheduleStatus() {
             date: formatDate(appt.dateInjection),
             status: appt.status,
             dateInjection: new Date(appt.dateInjection).getTime(),
+            injectionNote: appt.injectionNote,
           }));
   
           const packageAppointments = data.packageVaccineAppointments.$values.map((pkg) => ({
@@ -53,6 +54,7 @@ function VaccinationScheduleStatus() {
               status: dose.status,
               id: dose.id,
               dateInjection: new Date(dose.dateInjection).getTime(),
+              injectionNote: dose.injectionNote,
             })),
           }));
   
@@ -148,6 +150,8 @@ function VaccinationScheduleStatus() {
     <p><strong>Vắc xin:</strong> {schedule.vaccine}</p>
     <p><strong>Ngày tiêm:</strong> {schedule.date}</p>
     <p><strong>Trạng thái:</strong> {getStatusBadge(schedule.status)}</p>
+    <p><strong>Phản ứng sau khi tiêm:</strong> {schedule.injectionNote || "Không có"}</p>
+
   </div>
 </div>
 
@@ -155,7 +159,7 @@ function VaccinationScheduleStatus() {
           </div>
         )}
 
-        {activeTab === "package" && (
+        {/* {activeTab === "package" && (
           <div>
             {packageAppointments.map((schedule) => (
               <div className="card mb-4 shadow" key={schedule.id}>
@@ -184,7 +188,11 @@ function VaccinationScheduleStatus() {
                               </button>
                             )}
                           </td>
+                          <td colSpan="4" className="text-muted">
+    📝 <strong>Ghi chú:</strong> {inj.injectionNote || "Không có"}
+  </td>
                         </tr>
+                        
                       ))}
                     </tbody>
                   </table>
@@ -192,7 +200,57 @@ function VaccinationScheduleStatus() {
               </div>
             ))}
           </div>
-        )}
+        )} */}
+{activeTab === "package" && (
+  <div>
+    {packageAppointments.map((schedule) => (
+      <div className="card mb-4 shadow" key={schedule.id}>
+        <div className="card-body">
+          <h5 className="card-title">{schedule.customer}</h5>
+          <p><strong>Gói tiêm:</strong> {schedule.package}</p>
+          <table className="table table-bordered mt-3">
+            <thead className="table-dark">
+              <tr>
+                <th>Mũi tiêm</th>
+                <th>Ngày tiêm</th>
+                <th>Trạng thái</th>
+                <th>Phản ứng sau khi tiêm</th> {/* 👈 Cột mới */}
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schedule.injections.map((inj) => (
+                <tr key={inj.id}>
+                  <td>{inj.vaccine}</td>
+                  <td>{inj.date}</td>
+                  <td>{getStatusBadge(inj.status)}</td>
+                  <td className="text-muted">{inj.injectionNote || "Không có"}</td> {/* 👈 Hiển thị ghi chú ở đây */}
+                  <td>
+                    {inj.status !== "Canceled" && inj.status !== "Completed" && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => {
+                          setSelectedInjection(inj);
+                          setShowModal(true);
+                        }}
+                      >
+                        Hủy
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
+
+
+
       </div>
       
      <Modal show={showModal} onHide={() => setShowModal(false)}>
