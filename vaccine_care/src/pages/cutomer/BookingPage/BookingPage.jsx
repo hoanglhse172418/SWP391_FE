@@ -10,6 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Button, notification } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 
 function BookingPage() {
@@ -30,30 +31,119 @@ function BookingPage() {
     const [childId, setChildId] = useState(null);
     const location = useLocation();
     const notificationTypes = ['success', 'info', 'warning', 'error'];
+    const [vaccinationProfileId, setVaccinationProfileId] = useState(null);
+    const [highlightedVaccines, setHighlightedVaccines] = useState({});
+    const [diseaseEarliestDate, setDiseaseEarliestDate] = useState({});
+    const [vaccinationDetails, setVaccinationDetails] = useState([]);
+    const [diseaseInjectionInfo, setDiseaseInjectionInfo] = useState('');
+
+    const navigate = useNavigate();
+    // Hiển thị cảnh báo
+    useEffect(() => {
+        const fetchVaccinationDetails = async () => {
+          if (!selectedChild) return;
+      
+          try {
+            const profileRes = await api.get(`/VaccinationProfile/get-all?FilterOn=childrenId&FilterQuery=${selectedChild}`);
+            const profiles = profileRes.data?.$values || [];
+            if (profiles.length === 0) return;
+      
+            const profileId = profiles[0].id;
+      
+            const res = await api.get(`/VaccinationDetail/get-all?FilterOn=vaccinationProfileId&FilterQuery=${profileId}&PageSize=200`);
+            const details = res.data?.$values || [];
+            setVaccinationDetails(details);
+          } catch (err) {
+            console.error("❌ Lỗi khi gọi VaccinationDetail:", err);
+          }
+        };
+      
+        fetchVaccinationDetails();
+      }, [selectedChild]);
+      useEffect(() => {
+        if (!selectedDisease || vaccinationDetails.length === 0) {
+          setDiseaseInjectionInfo('');
+          return;
+        }
+      
+        const selectedDiseaseObj = diseases.find(d => d.name === selectedDisease);
+        if (!selectedDiseaseObj) {
+          setDiseaseInjectionInfo('');
+          return;
+        }
+      
+        const diseaseId = selectedDiseaseObj.id;
+        const related = vaccinationDetails.filter(v => v.diseaseId === diseaseId);
+        const total = related.length;
+        const done = related.filter(v => v.actualInjectionDate !== null).length;
+        const remaining = total - done;
+      
+        if (remaining > 0) {
+          setDiseaseInjectionInfo(`🦠 Bệnh "${selectedDisease}" còn ${remaining} mũi cần tiêm để hoàn tất.`);
+        } else {
+          setDiseaseInjectionInfo(`✅ Bệnh "${selectedDisease}" đã hoàn tất các mũi tiêm.`);
+        }
+      }, [selectedDisease, vaccinationDetails]);
+      
+
+
+    useEffect(() => {
+        const fetchVaccineTemplateByChild = async () => {
+          if (!selectedChild) return;
+      
+          try {
+            const profileRes = await api.get(`/VaccinationProfile/get-all?FilterOn=childrenId&FilterQuery=${selectedChild}`);
+            const profiles = profileRes.data?.$values || [];
+      
+            if (profiles.length > 0) {
+              const profileId = profiles[0].id;
+              const vaccineTemplateRes = await api.get(`/VaccineTemplate/get-by-profileid/${profileId}`);
+              const vaccineData = vaccineTemplateRes.data?.$values || vaccineTemplateRes.data;
+      
+              // 👉 Group theo diseaseId và lấy expectedInjectionDate sớm nhất
+              const diseaseToEarliestDate = {};
+      
+              vaccineData.forEach(vaccine => {
+                const diseaseId = vaccine.diseaseId;
+                const date = new Date(vaccine.expectedInjectionDate);
+                if (!diseaseToEarliestDate[diseaseId] || date < new Date(diseaseToEarliestDate[diseaseId])) {
+                  diseaseToEarliestDate[diseaseId] = vaccine.expectedInjectionDate;
+                }
+              });
+      
+              setDiseaseEarliestDate(diseaseToEarliestDate);
+              console.log("🧠 Ngày tiêm dự kiến sớm nhất theo bệnh:", diseaseToEarliestDate);
+            }
+          } catch (error) {
+            console.error("❌ Lỗi khi lấy VaccineTemplate:", error);
+          }
+        };
+      
+        fetchVaccineTemplateByChild();
+      }, [selectedChild]);
+      
+
 
      // Nhận dữ liệu từ VaccinationSchedule    
     useEffect(() => {
         if (location.state) {
-            // console.log("Dữ liệu nhận từ VaccinationSchedule:", location.state);
-    
-            // Lưu childId nếu có và đồng bộ vào selectedChild
+            // 🧒 Đồng bộ ID trẻ
             if (location.state.childId) {
                 setChildId(location.state.childId);
-                setSelectedChild(location.state.childId); // Cập nhật selectedChild
+                setSelectedChild(location.state.childId);
             } else {
                 console.warn("Không tìm thấy ID của đứa trẻ.");
             }
     
-            // Gán ngày dự kiến nếu có
+            // 📅 Gán ngày dự kiến (fix chỗ lỗi định dạng string)
             if (location.state.expectedInjectionDate) {
                 try {
                     const dateObj = new Date(location.state.expectedInjectionDate);
-                    const year = dateObj.getFullYear();
-                    const month = String(dateObj.getMonth() + 1).padStart(2, "0"); 
-                    const day = String(dateObj.getDate()).padStart(2, "0");
-    
-                    const formattedDate = `${year}-${month}-${day}`; 
-                    setAppointmentDate(formattedDate);
+                    if (!isNaN(dateObj.getTime())) {
+                        setAppointmentDate(dateObj); // ✅ Gán đúng Date object
+                    } else {
+                        console.warn("expectedInjectionDate không hợp lệ:", location.state.expectedInjectionDate);
+                    }
                 } catch (error) {
                     console.error("Lỗi chuyển đổi ngày dự kiến:", error);
                 }
@@ -61,8 +151,8 @@ function BookingPage() {
                 console.warn("Không có ngày dự kiến, người dùng cần nhập tay.");
             }
     
-            // Gán tên bệnh nếu có
-            if (location.state.diseaseId) {
+            // 💉 Gán bệnh nếu có
+            if (location.state.diseaseId && diseases.length > 0) {
                 const foundDisease = diseases.find(d => d.id === location.state.diseaseId);
                 if (foundDisease) {
                     setSelectedDisease(foundDisease.name);
@@ -170,7 +260,57 @@ useEffect(() => {
         });
       };
 
+      const checkIfChildHasAppointmentOnDate = async (childId, date) => {
+        try {
+          const res = await api.get(`/Appointment/customer-appointments`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+      
+          const allAppointments = [
+            ...(res.data?.singleVaccineAppointments?.$values || []),
+            ...(res.data?.packageVaccineAppointments?.$values || []).flatMap(pkg => pkg.vaccineItems?.$values || [])
+          ];
+      
+          // Chuyển ngày về yyyy-mm-dd để so sánh
+          const formattedDate = new Date(date).toISOString().split('T')[0];
+      
+          return allAppointments.some(app =>
+            app.childrenId === parseInt(childId) &&
+            new Date(app.dateInjection).toISOString().split('T')[0] === formattedDate &&
+            app.status !== "Canceled"
+          );
+        } catch (error) {
+          console.error("Lỗi khi kiểm tra lịch tiêm:", error);
+          return false; // fallback cho phép đặt nếu lỗi
+        }
+      };
+      
+
       const handleSubmit = async () => {
+
+        if (vaccineType === "Vaccine lẻ" && selectedDisease) {
+  const selectedDiseaseObj = diseases.find(d => d.name === selectedDisease);
+  const diseaseId = selectedDiseaseObj?.id;
+  const minDate = diseaseEarliestDate[diseaseId];
+
+  if (minDate && new Date(appointmentDate) < new Date(minDate)) {
+    openNotification(
+      'warning',
+      'Ngày tiêm không hợp lệ',
+      `⚠️ Ngày tiêm phải sau ${new Date(minDate).toLocaleDateString()} theo lịch tiêm mẫu!`
+    );
+    return;
+  }
+}
+
+
+        // Check lịch trùng
+const isDuplicate = await checkIfChildHasAppointmentOnDate(selectedChild, appointmentDate);
+if (isDuplicate) {
+  openNotification('error', 'Không thể đặt lịch', '❌ Mỗi trẻ chỉ được tiêm 1 mũi/ngày!');
+  return;
+}
+
         if (!selectedChild || !appointmentDate || !contactName || !contactPhone || (!selectedVaccine && !selectedVaccinePackage && !selectedPendingVaccine)) {
           openNotification('warning', 'Thiếu thông tin', 'Vui lòng nhập đầy đủ thông tin!');
           return;
@@ -193,6 +333,11 @@ useEffect(() => {
             });
     
             openNotification('success', 'Thành công', '✅ Cập nhật ngày tiêm thành công!');
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+            
+
             return;
           } catch (error) {
             openNotification('error', 'Lỗi cập nhật', `Cập nhật ngày tiêm thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
@@ -231,125 +376,17 @@ useEffect(() => {
             headers: { Authorization: `Bearer ${token}` },
           });
           openNotification('success', 'Thành công', '✅ Đặt lịch thành công!');
+          setTimeout(() => {
+            navigate('/vaccinationScheduleStatus');
+          }, 1500);
+          
+          
+
         } catch (error) {
           openNotification('error', 'Lỗi đặt lịch', `Đặt lịch thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
         }
       };
-    //   const handleSubmit = async () => {
-    //     if (!selectedChild || !appointmentDate || !contactName || !contactPhone || (!selectedVaccine && !selectedVaccinePackage && !selectedPendingVaccine)) {
-    //       openNotification('warning', 'Thiếu thông tin', 'Vui lòng nhập đầy đủ thông tin!');
-    //       return;
-    //     }
-      
-    //     // Chuyển appointmentDate về yyyy-MM-dd để tránh lỗi lệch ngày
-    //     const formatDate = (date) => {
-    //       const d = new Date(date);
-    //       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    //     };
-      
-    //     if (vaccineType === 'Vắc xin đang chờ' && selectedPendingVaccine) {
-    //       try {
-    //         const requestData = [{
-    //           appointmentId: parseInt(selectedPendingVaccine),
-    //           newDate: formatDate(appointmentDate), // Chuyển đổi ngày đúng format
-    //         }];
-      
-    //         // console.log("Request Data (Cập nhật ngày tiêm):", requestData);
-      
-    //         await api.put('/Appointment/update-multiple-injection-dates', requestData, {
-    //           headers: { Authorization: `Bearer ${token}` },
-    //         });
-      
-    //         openNotification('success', 'Thành công', '✅ Cập nhật ngày tiêm thành công!');
-    //         return;
-    //       } catch (error) {
-    //         openNotification('error', 'Lỗi cập nhật', `Cập nhật ngày tiêm thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
-    //         return;
-    //       }
-    //     }
-      
-    //     let vaccineTypeFormatted = vaccineType === "Vaccine lẻ" ? "Single" : vaccineType === "Vắc xin gói" ? "Package" : "";
-    //     if (!vaccineTypeFormatted) {
-    //       openNotification('warning', 'Sai loại vắc xin', "Vui lòng chọn loại vắc xin hợp lệ!");
-    //       return;
-    //     }
-      
-    //     const requestData = {
-    //       childFullName: children.find(child => child.id === parseInt(selectedChild))?.childrenFullname || "",
-    //       contactFullName: contactName,
-    //       contactPhoneNumber: contactPhone,
-    //       vaccineType: vaccineTypeFormatted,
-    //       diaseaseName: vaccineTypeFormatted === "Single" ? selectedDisease || "" : "",
-    //       selectedVaccineId: vaccineTypeFormatted === "Single" ? parseInt(selectedVaccine) || null : null,
-    //       selectedVaccinePackageId: vaccineTypeFormatted === "Package" ? parseInt(selectedVaccinePackage) || null : null,
-    //       appointmentDate: formatDate(appointmentDate), // Đổi format ngày
-    //     };
-      
-    //     // console.log("Request Data (Đặt lịch tiêm):", requestData);
-      
-    //     try {
-    //       await api.post('/Appointment/book-appointment', requestData, {
-    //         headers: { Authorization: `Bearer ${token}` },
-    //       });
-    //       openNotification('success', 'Thành công', '✅ Đặt lịch thành công!');
-    //     } catch (error) {
-    //       openNotification('error', 'Lỗi đặt lịch', `Đặt lịch thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
-    //     }
-    //   };
-      
-      
-  
-    // const handleSubmit = async () => {
-    //   if (!selectedChild || !appointmentDate || !contactName || !contactPhone || (!selectedVaccine && !selectedVaccinePackage && !selectedPendingVaccine)) {
-    //     openNotification('warning', 'Thiếu thông tin', 'Vui lòng nhập đầy đủ thông tin!');
-    //     return;
-    //   }
-  
-    //   if (vaccineType === 'Vắc xin đang chờ' && selectedPendingVaccine) {
-    //     try {
-    //       const requestData = [{
-    //         appointmentId: parseInt(selectedPendingVaccine),
-    //         newDate: new Date(appointmentDate).toISOString(),
-    //       }];
-  
-    //       await api.put('/Appointment/update-multiple-injection-dates', requestData, {
-    //         headers: { Authorization: `Bearer ${token}` },
-    //       });
-  
-    //       openNotification('success', 'Thành công', '✅ Cập nhật ngày tiêm thành công!');
-    //       return;
-    //     } catch (error) {
-    //       openNotification('error', 'Lỗi cập nhật', `Cập nhật ngày tiêm thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
-    //       return;
-    //     }
-    //   }
-  
-    //   let vaccineTypeFormatted = vaccineType === "Vaccine lẻ" ? "Single" : vaccineType === "Vắc xin gói" ? "Package" : "";
-    //   if (!vaccineTypeFormatted) {
-    //     openNotification('warning', 'Sai loại vắc xin', "Vui lòng chọn loại vắc xin hợp lệ!");
-    //     return;
-    //   }
-  
-    //   const requestData = {
-    //     childFullName: children.find(child => child.id === parseInt(selectedChild))?.childrenFullname || "",
-    //     contactFullName: contactName,
-    //     contactPhoneNumber: contactPhone,
-    //     vaccineType: vaccineTypeFormatted,
-    //     diaseaseName: vaccineTypeFormatted === "Single" ? selectedDisease || "" : "",
-    //     selectedVaccineId: vaccineTypeFormatted === "Single" ? parseInt(selectedVaccine) || null : null,
-    //     selectedVaccinePackageId: vaccineTypeFormatted === "Package" ? parseInt(selectedVaccinePackage) || null : null,
-    //     appointmentDate: new Date(appointmentDate).toISOString(),
-    //   };
-  
-    //   try {
-    //     await api.post('/Appointment/book-appointment', requestData, {
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     });
-    //     openNotification('success', 'Thành công', '✅ Đặt lịch thành công!');
-    //   } catch (error) {
-    //     openNotification('error', 'Lỗi đặt lịch', `Đặt lịch thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
-    //   }
-    // };
+   
 
 // vaccine đang tiêm
 const [pendingVaccines, setPendingVaccines] = useState([]);
@@ -450,6 +487,19 @@ useEffect(() => {
                             <option key={disease.id} value={disease.name}>{disease.name}</option>
                         ))}
                     </select>
+                    {diseaseInjectionInfo && (
+  <div style={{
+    backgroundColor: '#fff3cd',
+    color: '#856404',
+    padding: '10px 15px',
+    borderRadius: '8px',
+    border: '1px solid #ffeeba',
+    marginTop: '10px'
+  }}>
+    {diseaseInjectionInfo}
+  </div>
+)}
+
 
                     {showVaccineSelect && relatedVaccines.length > 0 && (
                         <>
