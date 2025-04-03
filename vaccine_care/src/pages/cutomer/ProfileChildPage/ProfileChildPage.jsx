@@ -238,7 +238,7 @@ const ProfileChildPage = () => {
     </div>
 
     <div className="ProfileChildPage-container" style={{ maxWidth: 800, margin: "0 auto", padding: "2rem" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "2rem" }}>🧒 Hồ sơ trẻ</h2>
+      <h2 style={{ textAlign: "center", marginBottom: "2rem" }}>🧒 Danh sách hồ sơ trẻ</h2>
       {childrenData.length > 0 ? (
         <List
           itemLayout="horizontal"

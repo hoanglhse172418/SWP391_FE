@@ -2,12 +2,16 @@ import React, { useEffect, useState, useContext } from "react";
 import api from "../../../services/api";
 import { AuthContext } from "../../../context/AuthContext";
 import jwtDecode from "jwt-decode";
+import { Card, Descriptions, Avatar } from "antd";
+import { UserOutlined } from "@ant-design/icons";
+import { Pie, Column } from "@ant-design/plots";
 
 function ProfilePage() {
   const { token } = useContext(AuthContext);
   const [user, setUser] = useState(null);
+  const [children, setChildren] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState(null);
-  const [errorDetails, setErrorDetails] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -15,57 +19,139 @@ function ProfilePage() {
       return;
     }
 
-    let userId;
-    try {
-      const decoded = jwtDecode(token);
-      userId = decoded.Id; 
-      console.log("User ID from token:", userId);
-    } catch (err) {
-      console.error("❌ Lỗi giải mã token:", err);
-      setError("Token không hợp lệ!");
-      setErrorDetails(err.message);
-      return;
-    }
-
-    const fetchUser = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get(`/User/get/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const decoded = jwtDecode(token);
+        const userId = decoded.Id;
 
-        console.log("✅ Dữ liệu người dùng:", response.data);
-        setUser(response.data);
+        const [userRes, childRes, appointRes] = await Promise.all([
+          api.get(`/User/get/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          api.get(`/Child/get-all?FilterOn=userId&FilterQuery=${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          api.get(`/Appointment/customer-appointments`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        setUser(userRes.data);
+        setChildren(childRes.data["$values"] || []);
+
+        const single = appointRes.data.singleVaccineAppointments?.$values || [];
+        const packageAppointments = appointRes.data.packageVaccineAppointments?.$values || [];
+        const packageItems = packageAppointments.flatMap(p => p.vaccineItems?.$values || []);
+        const allAppointments = [...single, ...packageItems];
+
+        setAppointments(allAppointments);
       } catch (err) {
-        console.error("❌ Lỗi lấy thông tin người dùng:", err);
-        setError("Không thể lấy thông tin cá nhân!");
-        setErrorDetails(err.response ? err.response.data : err.message);
+        console.error("❌ Lỗi khi fetch dữ liệu:", err);
+        setError("Không thể tải dữ liệu. Vui lòng thử lại!");
       }
     };
 
-    fetchUser();
+    fetchData();
   }, [token]);
 
   if (error) {
-    return (
-      <div className="alert alert-danger">
-        <p>{error}</p>
-        {errorDetails && <pre>{JSON.stringify(errorDetails, null, 2)}</pre>}
-      </div>
-    );
+    return <div className="alert alert-danger">{error}</div>;
   }
 
   if (!user) {
-    return <div>Đang tải dữ liệu...</div>;
+    return <div>Đang tải dữ liệu người dùng...</div>;
   }
+
+  // === Chart 1: Gender Pie Chart ===
+  const genderCount = children.reduce((acc, child) => {
+    acc[child.gender] = (acc[child.gender] || 0) + 1;
+    return acc;
+  }, {});
+  const genderData = Object.entries(genderCount).map(([type, value]) => ({
+    type,
+    value,
+  }));
+  const genderPieConfig = {
+    appendPadding: 10,
+    data: genderData,
+    angleField: "value",
+    colorField: "type",
+    radius: 1,
+    label: {
+      type: "outer",
+      content: "{name} ({percentage})",
+    },
+    interactions: [{ type: "element-active" }],
+  };
+
+  // === Chart 2: Appointment Column Chart ===
+  const statusCount = appointments.reduce((acc, appt) => {
+    acc[appt.status] = (acc[appt.status] || 0) + 1;
+    return acc;
+  }, {});
+  const statusData = Object.entries(statusCount).map(([type, value]) => ({
+    type,
+    value,
+  }));
+  const appointmentColumnConfig = {
+    data: statusData,
+    xField: "type",
+    yField: "value",
+    label: { position: "middle" },
+    xAxis: { label: { autoHide: true, autoRotate: false } },
+    meta: {
+      type: { alias: "Trạng thái" },
+      value: { alias: "Số lượng" },
+    },
+  };
 
   return (
     <div className="container mt-5">
-      <h2>Thông tin cá nhân</h2>
-      <p><strong>ID:</strong> {user.id}</p>
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Role:</strong> {user.role}</p>
-      <p><strong>Created At:</strong> {new Date(user.createdAt).toLocaleString()}</p>
-      <p><strong>Updated At:</strong> {new Date(user.updatedAt).toLocaleString()}</p>
+      <Card
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Avatar size="large" icon={<UserOutlined />} />
+            <span>Thông tin cá nhân</span>
+          </div>
+        }
+        bordered={false}
+        style={{
+          marginBottom: 32,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: 12,
+        }}
+      >
+        <Descriptions column={1} labelStyle={{ fontWeight: 600 }}>
+          <Descriptions.Item label="ID">{user.id}</Descriptions.Item>
+          <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
+          <Descriptions.Item label="Role">{user.role}</Descriptions.Item>
+          <Descriptions.Item label="Created At">
+            {new Date(user.createdAt).toLocaleString()}
+          </Descriptions.Item>
+          <Descriptions.Item label="Updated At">
+            {new Date(user.updatedAt).toLocaleString()}
+          </Descriptions.Item>
+        </Descriptions>
+      </Card>
+
+      <Card
+        title="Thông tin trẻ và lịch tiêm"
+        bordered={false}
+        style={{
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: 12,
+        }}
+      >
+        <p><strong>Tổng số trẻ:</strong> {children.length}</p>
+        <div className="row">
+          <div className="col-md-6">
+            <Pie {...genderPieConfig} />
+          </div>
+          <div className="col-md-6">
+            <Column {...appointmentColumnConfig} />
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
