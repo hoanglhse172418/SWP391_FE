@@ -372,6 +372,57 @@ if (isDuplicate) {
         };
     
         try {
+
+          // Nếu là vắc xin gói, kiểm tra xem đã từng đặt gói này chưa
+          if (vaccineTypeFormatted === "Package" && selectedVaccinePackage) {
+            try {
+              const res = await api.get(`/Appointment/customer-appointments`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+          
+              const existingPackages = res.data?.packageVaccineAppointments?.$values || [];
+          
+              // Check nếu gói đã được đặt và còn mũi chưa huỷ
+              const samePackage = existingPackages.find(
+                pkg => pkg.vaccinePackageId === parseInt(selectedVaccinePackage)
+              );
+          
+              if (samePackage) {
+                const stillActive = samePackage.vaccineItems?.$values.some(item => item.status !== "Canceled");
+                if (stillActive) {
+                  openNotification(
+                    'warning',
+                    'Gói vắc xin đã được đặt',
+                    '⚠️ Gói này đã có lịch tiêm đang hoạt động. Vui lòng chọn gói khác!'
+                  );
+                  return;
+                }
+              }
+          
+              // Check nếu ngày đó đã có bất kỳ gói vắc xin nào đang đặt
+              const selectedDateStr = new Date(appointmentDate).toISOString().split('T')[0];
+              const hasOtherPackageSameDay = existingPackages.some(pkg =>
+                pkg.vaccineItems?.$values.some(item =>
+                  new Date(item.dateInjection).toISOString().split('T')[0] === selectedDateStr &&
+                  item.status !== "Canceled"
+                )
+              );
+          
+              if (hasOtherPackageSameDay) {
+                openNotification(
+                  'error',
+                  'Đã có gói vắc xin trong ngày',
+                  '❌ Một ngày chỉ được tiêm 1 gói vắc xin. Vui lòng chọn ngày khác!'
+                );
+                return;
+              }
+          
+            } catch (error) {
+              console.error("❌ Lỗi khi kiểm tra gói vắc xin:", error);
+            }
+          }
+          
+
           await api.post('/Appointment/book-appointment', requestData, {
             headers: { Authorization: `Bearer ${token}` },
           });
