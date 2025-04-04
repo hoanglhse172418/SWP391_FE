@@ -19,6 +19,7 @@ import "../admin.css";
 const Vaccine = () => {
   const [vaccines, setVaccines] = useState([]);
   const [vaccinePackages, setVaccinePackages] = useState([]);
+  const [diseases, setDiseases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("vaccine");
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -36,44 +37,88 @@ const Vaccine = () => {
     manufacture: "",
     description: "",
     imageFile: null,
-    recAgeStart: 0,
-    recAgeEnd: 0,
-    inStockNumber: 0,
+    recAgeStart: "",
+    recAgeEnd: "",
+    recAgeStartUnit: "month",
+    recAgeEndUnit: "month",
+    inStockNumber: "",
     price: "",
+    displayPrice: "",
     notes: "",
   });
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
   const [vaccineToUpdate, setVaccineToUpdate] = useState(null);
+  const [vaccineDetails, setVaccineDetails] = useState({});
 
   const getAllVaccines = () => api.get("/Vaccine/get-all");
   const getAllVaccinePackages = () => api.get("/VaccinePackage/get-all");
+  const getAllDiseases = () => api.get("/Disease/get-all");
+  const getVaccinesByDisease = (diseaseName) => api.get(`/Vaccine/get-vaccines-by-diasease-name/${diseaseName}`);
 
   useEffect(() => {
     if (activeTab === "vaccine") {
-      fetchVaccines();
+      fetchVaccinesAndDiseases();
     } else {
       fetchVaccinePackages();
     }
   }, [activeTab]);
 
-  const fetchVaccines = async () => {
+  const fetchVaccinesAndDiseases = async () => {
     try {
-      const response = await getAllVaccines();
-      const formattedData = response.data.$values.map((vaccine) => ({
-        id: vaccine.id,
-        name: vaccine.name,
-        manufacture: vaccine.manufacture,
-        description: vaccine.description,
-        imageUrl: vaccine.imageUrl,
-        inStockNumber: vaccine.inStockNumber,
-        price: vaccine.price,
-        recAgeStart: vaccine.recAgeStart,
-        recAgeEnd: vaccine.recAgeEnd,
-        status: vaccine.inStockNumber > 0 ? "Còn hàng" : "Hết hàng",
-      }));
-      setVaccines(formattedData);
+      setLoading(true);
+      const [vaccinesResponse, diseasesResponse] = await Promise.all([
+        getAllVaccines(),
+        getAllDiseases()
+      ]);
+
+      const diseasesList = diseasesResponse.data.$values;
+      setDiseases(diseasesList);
+
+      // Lấy danh sách vaccine cho từng bệnh
+      const vaccinesByDisease = await Promise.all(
+        diseasesList.map(async (disease) => {
+          try {
+            const response = await getVaccinesByDisease(disease.name);
+            return {
+              diseaseName: disease.name,
+              vaccines: response.data.$values || []
+            };
+          } catch (error) {
+            console.error(`Error fetching vaccines for disease ${disease.name}:`, error);
+            return {
+              diseaseName: disease.name,
+              vaccines: []
+            };
+          }
+        })
+      );
+
+      // Map vaccines với diseases tương ứng
+      const formattedVaccines = vaccinesResponse.data.$values.map(vaccine => {
+        const vaccineInDiseases = vaccinesByDisease.filter(vd => 
+          vd.vaccines.some(v => v.id === vaccine.id)
+        );
+        const diseaseNames = vaccineInDiseases.map(vd => vd.diseaseName);
+
+        return {
+          id: vaccine.id,
+          name: vaccine.name,
+          manufacture: vaccine.manufacture,
+          description: vaccine.description,
+          imageUrl: vaccine.imageUrl,
+          inStockNumber: vaccine.inStockNumber,
+          price: vaccine.price,
+          recAgeStart: vaccine.recAgeStart,
+          recAgeEnd: vaccine.recAgeEnd,
+          status: vaccine.inStockNumber > 0 ? "Còn hàng" : "Hết hàng",
+          diseases: diseaseNames
+        };
+      });
+
+      setVaccines(formattedVaccines);
     } catch (error) {
-      console.error("Error fetching vaccines:", error);
+      console.error("Error fetching data:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -191,6 +236,25 @@ const Vaccine = () => {
         <Tag color={status === "Còn hàng" ? "green" : "red"}>
           {status}
         </Tag>
+      ),
+    },
+    {
+      title: "Phòng bệnh",
+      dataIndex: "diseases",
+      key: "diseases",
+      width: 200,
+      render: (diseases) => (
+        <div>
+          {diseases && diseases.length > 0 ? (
+            diseases.map((disease, index) => (
+              <Tag key={index} color="blue" style={{ margin: '2px' }}>
+                {disease}
+              </Tag>
+            ))
+          ) : (
+            <Tag color="default">Chưa phân loại</Tag>
+          )}
+        </div>
       ),
     },
     {
@@ -393,15 +457,77 @@ const Vaccine = () => {
     setSelectedVaccines(newVaccines);
   };
 
+  const handleAgeChange = (value, field) => {
+    if (value <= 0) {
+      message.error("Độ tuổi phải lớn hơn 0");
+      return;
+    }
+    setNewVaccine(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleStockChange = (value) => {
+    if (value < 0) {
+      message.error("Số lượng trong kho không thể là số âm");
+      return;
+    }
+    setNewVaccine(prev => ({ ...prev, inStockNumber: value }));
+  };
+
   const handleCreateVaccine = async () => {
     try {
+      // Validate required fields
+      if (!newVaccine.vaccineName.trim()) {
+        message.error("Vui lòng nhập tên vaccine");
+        return;
+      }
+      if (!newVaccine.manufacture.trim()) {
+        message.error("Vui lòng nhập tên nhà sản xuất");
+        return;
+      }
+      if (!newVaccine.description.trim()) {
+        message.error("Vui lòng nhập mô tả vaccine");
+        return;
+      }
+      if (!newVaccine.imageFile) {
+        message.error("Vui lòng chọn hình ảnh vaccine");
+        return;
+      }
+      if (!newVaccine.recAgeStart || newVaccine.recAgeStart <= 0) {
+        message.error("Độ tuổi bắt đầu phải lớn hơn 0");
+        return;
+      }
+      if (!newVaccine.recAgeEnd || newVaccine.recAgeEnd <= 0) {
+        message.error("Độ tuổi kết thúc phải lớn hơn 0");
+        return;
+      }
+      if (newVaccine.recAgeEnd <= newVaccine.recAgeStart) {
+        message.error("Độ tuổi kết thúc phải lớn hơn độ tuổi bắt đầu");
+        return;
+      }
+      if (!newVaccine.inStockNumber && newVaccine.inStockNumber !== 0) {
+        message.error("Vui lòng nhập số lượng trong kho");
+        return;
+      }
+      if (newVaccine.inStockNumber < 0) {
+        message.error("Số lượng trong kho không thể là số âm");
+        return;
+      }
+      if (!newVaccine.price || parseInt(newVaccine.price) <= 0) {
+        message.error("Vui lòng nhập giá vaccine hợp lệ");
+        return;
+      }
+
+      // Chuyển đổi độ tuổi sang tháng
+      const startAgeInMonths = convertToMonths(newVaccine.recAgeStart, newVaccine.recAgeStartUnit);
+      const endAgeInMonths = convertToMonths(newVaccine.recAgeEnd, newVaccine.recAgeEndUnit);
+
       const formData = new FormData();
       formData.append("VaccineName", newVaccine.vaccineName);
       formData.append("Manufacture", newVaccine.manufacture);
       formData.append("Description", newVaccine.description);
       formData.append("ImageFile", newVaccine.imageFile);
-      formData.append("RecAgeStart", newVaccine.recAgeStart);
-      formData.append("RecAgeEnd", newVaccine.recAgeEnd);
+      formData.append("RecAgeStart", startAgeInMonths);
+      formData.append("RecAgeEnd", endAgeInMonths);
       formData.append("InStockNumber", newVaccine.inStockNumber);
       formData.append("Price", newVaccine.price);
       formData.append("Notes", newVaccine.notes);
@@ -412,23 +538,26 @@ const Vaccine = () => {
         },
       });
 
-      message.success("Vaccine created successfully");
+      message.success("Tạo vaccine thành công");
       setIsCreateVaccineModalVisible(false);
       setNewVaccine({
         vaccineName: "",
         manufacture: "",
         description: "",
         imageFile: null,
-        recAgeStart: 0,
-        recAgeEnd: 0,
-        inStockNumber: 0,
+        recAgeStart: "",
+        recAgeEnd: "",
+        recAgeStartUnit: "month",
+        recAgeEndUnit: "month",
+        inStockNumber: "",
         price: "",
+        displayPrice: "",
         notes: "",
       });
-      fetchVaccines(); // Refresh danh sách
+      fetchVaccinesAndDiseases();
     } catch (error) {
       console.error("Error creating vaccine:", error);
-      message.error("An error occurred while creating the vaccine");
+      message.error("Có lỗi xảy ra khi tạo vaccine");
     }
   };
 
@@ -439,6 +568,14 @@ const Vaccine = () => {
         imageFile: e.target.files[0],
       }));
     }
+  };
+
+  const handleUpdateStockChange = (value) => {
+    if (value < 0) {
+      message.error("Số lượng trong kho không thể là số âm");
+      return;
+    }
+    setVaccineToUpdate(prev => ({ ...prev, inStockNumber: value }));
   };
 
   const handleUpdate = async () => {
@@ -472,10 +609,61 @@ const Vaccine = () => {
 
       message.success("Vaccine đã được cập nhật thành công");
       setIsUpdateModalVisible(false);
-      fetchVaccines();
+      fetchVaccinesAndDiseases();
     } catch (error) {
       console.error("Error updating vaccine:", error);
       message.error("Đã xảy ra lỗi khi cập nhật vaccine");
+    }
+  };
+
+  // Thêm hàm chuyển đổi tuổi sang tháng
+  const convertToMonths = (age, unit) => {
+    return unit === "year" ? age * 12 : parseInt(age);
+  };
+
+  // Thêm hàm format giá tiền
+  const formatPrice = (price) => {
+    if (!price) return '';
+    // Loại bỏ tất cả ký tự không phải số
+    const numericValue = price.toString().replace(/[^0-9]/g, '');
+    // Format số với dấu phẩy ngăn cách hàng nghìn
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
+  // Thêm hàm xử lý thay đổi giá
+  const handlePriceChange = (e) => {
+    const { value } = e.target;
+    // Lấy giá trị số từ chuỗi đã format
+    const numericValue = value.replace(/[^0-9]/g, '');
+    // Cập nhật state với giá trị đã format
+    setNewVaccine(prev => ({
+      ...prev,
+      price: numericValue,
+      displayPrice: formatPrice(numericValue) // Thêm displayPrice để hiển thị
+    }));
+  };
+
+  // Thêm hàm xử lý thay đổi giá cho form cập nhật
+  const handleUpdatePriceChange = (e) => {
+    const { value } = e.target;
+    const numericValue = value.replace(/[^0-9]/g, '');
+    setVaccineToUpdate(prev => ({
+      ...prev,
+      price: numericValue,
+      displayPrice: formatPrice(numericValue)
+    }));
+  };
+
+  const fetchVaccineDetails = async (vaccineId) => {
+    try {
+      const vaccine = vaccines.find(v => v.id === vaccineId);
+      if (vaccine && vaccine.diseases?.length > 0) {
+        return vaccine.diseases.join(', ');
+      }
+      return '';
+    } catch (error) {
+      console.error('Error fetching vaccine details:', error);
+      return '';
     }
   };
 
@@ -593,7 +781,12 @@ const Vaccine = () => {
                 >
                   {vaccines.map((v) => (
                     <Select.Option key={v.id} value={v.id}>
-                      {v.name}
+                      <div>
+                        <div>{v.name}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>
+                          {v.diseases?.length > 0 ? v.diseases.join(', ') : 'Chưa phân loại'}
+                        </div>
+                      </div>
                     </Select.Option>
                   ))}
                 </Select>
@@ -644,10 +837,13 @@ const Vaccine = () => {
             manufacture: "",
             description: "",
             imageFile: null,
-            recAgeStart: 0,
-            recAgeEnd: 0,
-            inStockNumber: 0,
+            recAgeStart: "",
+            recAgeEnd: "",
+            recAgeStartUnit: "month",
+            recAgeEndUnit: "month",
+            inStockNumber: "",
             price: "",
+            displayPrice: "",
             notes: "",
           });
         }}
@@ -710,26 +906,48 @@ const Vaccine = () => {
 
           <div style={{ display: "flex", gap: "16px" }}>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi bắt đầu (năm):</label>
-              <InputNumber
-                min={0}
-                value={newVaccine.recAgeStart}
-                onChange={(value) =>
-                  setNewVaccine((prev) => ({ ...prev, recAgeStart: value }))
-                }
-                style={{ width: "100%" }}
-              />
+              <label>Độ tuổi bắt đầu:</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <InputNumber
+                  min={1}
+                  value={newVaccine.recAgeStart}
+                  onChange={(value) => handleAgeChange(value, 'recAgeStart')}
+                  style={{ width: "70%" }}
+                  placeholder="Nhập tuổi bắt đầu"
+                />
+                <Select
+                  value={newVaccine.recAgeStartUnit}
+                  onChange={(value) =>
+                    setNewVaccine((prev) => ({ ...prev, recAgeStartUnit: value }))
+                  }
+                  style={{ width: "30%" }}
+                >
+                  <Select.Option value="month">Tháng</Select.Option>
+                  <Select.Option value="year">Năm</Select.Option>
+                </Select>
+              </div>
             </div>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi kết thúc (năm):</label>
-              <InputNumber
-                min={0}
-                value={newVaccine.recAgeEnd}
-                onChange={(value) =>
-                  setNewVaccine((prev) => ({ ...prev, recAgeEnd: value }))
-                }
-                style={{ width: "100%" }}
-              />
+              <label>Độ tuổi kết thúc:</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <InputNumber
+                  min={1}
+                  value={newVaccine.recAgeEnd}
+                  onChange={(value) => handleAgeChange(value, 'recAgeEnd')}
+                  style={{ width: "70%" }}
+                  placeholder="Nhập tuổi kết thúc"
+                />
+                <Select
+                  value={newVaccine.recAgeEndUnit}
+                  onChange={(value) =>
+                    setNewVaccine((prev) => ({ ...prev, recAgeEndUnit: value }))
+                  }
+                  style={{ width: "30%" }}
+                >
+                  <Select.Option value="month">Tháng</Select.Option>
+                  <Select.Option value="year">Năm</Select.Option>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -738,21 +956,19 @@ const Vaccine = () => {
             <InputNumber
               min={0}
               value={newVaccine.inStockNumber}
-              onChange={(value) =>
-                setNewVaccine((prev) => ({ ...prev, inStockNumber: value }))
-              }
+              onChange={handleStockChange}
               style={{ width: "100%" }}
+              placeholder="Nhập số lượng"
             />
           </div>
 
           <div>
             <label>Giá:</label>
             <Input
-              value={newVaccine.price}
-              onChange={(e) =>
-                setNewVaccine((prev) => ({ ...prev, price: e.target.value }))
-              }
+              value={newVaccine.displayPrice}
+              onChange={handlePriceChange}
               placeholder="Nhập giá vaccine"
+              addonAfter="VNĐ"
             />
           </div>
 
@@ -859,29 +1075,53 @@ const Vaccine = () => {
 
           <div style={{ display: "flex", gap: "16px" }}>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi bắt đầu (năm):</label>
-              <InputNumber
-                min={0}
-                value={vaccineToUpdate?.recAgeStart}
-                onChange={(value) =>
-                  setVaccineToUpdate((prev) => ({
-                    ...prev,
-                    recAgeStart: value,
-                  }))
-                }
-                style={{ width: "100%" }}
-              />
+              <label>Độ tuổi bắt đầu:</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <InputNumber
+                  min={1}
+                  value={vaccineToUpdate?.recAgeStart}
+                  onChange={(value) =>
+                    setVaccineToUpdate((prev) => ({
+                      ...prev,
+                      recAgeStart: value,
+                    }))
+                  }
+                  style={{ width: "70%" }}
+                />
+                <Select
+                  value={vaccineToUpdate?.recAgeStartUnit}
+                  onChange={(value) =>
+                    setVaccineToUpdate((prev) => ({ ...prev, recAgeStartUnit: value }))
+                  }
+                  style={{ width: "30%" }}
+                >
+                  <Select.Option value="month">Tháng</Select.Option>
+                  <Select.Option value="year">Năm</Select.Option>
+                </Select>
+              </div>
             </div>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi kết thúc (năm):</label>
-              <InputNumber
-                min={0}
-                value={vaccineToUpdate?.recAgeEnd}
-                onChange={(value) =>
-                  setVaccineToUpdate((prev) => ({ ...prev, recAgeEnd: value }))
-                }
-                style={{ width: "100%" }}
-              />
+              <label>Độ tuổi kết thúc:</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <InputNumber
+                  min={1}
+                  value={vaccineToUpdate?.recAgeEnd}
+                  onChange={(value) =>
+                    setVaccineToUpdate((prev) => ({ ...prev, recAgeEnd: value }))
+                  }
+                  style={{ width: "70%" }}
+                />
+                <Select
+                  value={vaccineToUpdate?.recAgeEndUnit}
+                  onChange={(value) =>
+                    setVaccineToUpdate((prev) => ({ ...prev, recAgeEndUnit: value }))
+                  }
+                  style={{ width: "30%" }}
+                >
+                  <Select.Option value="month">Tháng</Select.Option>
+                  <Select.Option value="year">Năm</Select.Option>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -890,27 +1130,19 @@ const Vaccine = () => {
             <InputNumber
               min={0}
               value={vaccineToUpdate?.inStockNumber}
-              onChange={(value) =>
-                setVaccineToUpdate((prev) => ({
-                  ...prev,
-                  inStockNumber: value,
-                }))
-              }
+              onChange={handleUpdateStockChange}
               style={{ width: "100%" }}
+              placeholder="Nhập số lượng"
             />
           </div>
 
           <div>
             <label>Giá:</label>
             <Input
-              value={vaccineToUpdate?.price}
-              onChange={(e) =>
-                setVaccineToUpdate((prev) => ({
-                  ...prev,
-                  price: e.target.value,
-                }))
-              }
+              value={vaccineToUpdate?.displayPrice || formatPrice(vaccineToUpdate?.price)}
+              onChange={handleUpdatePriceChange}
               placeholder="Nhập giá vaccine"
+              addonAfter="VNĐ"
             />
           </div>
 
