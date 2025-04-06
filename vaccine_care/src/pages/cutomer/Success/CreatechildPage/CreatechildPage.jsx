@@ -23,6 +23,18 @@ function CreatechildPage() {
   const navigate = useNavigate();
   const { token } = useContext(AuthContext);
 
+
+  const getMaxDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+  
+  const getMinDate = () => {
+    const minDate = new Date();
+    minDate.setMonth(minDate.getMonth() - 12);
+    return minDate.toISOString().split("T")[0];
+  };
+  
   // Decode token to extract userId
   let userId = 0;
   if (token) {
@@ -34,17 +46,26 @@ function CreatechildPage() {
       console.error("❌ Lỗi giải mã token:", err);
     }
   }
-
   const handleCreateChild = async () => {
-    setErrorMessage(""); // Reset error message
-
+    setErrorMessage(""); // Reset error
+  
+    // Validate required fields
     if (!childrenFullName || !dob || !motherFullName || !fatherFullName || !phonemom || !phonedad || !province || !district || !ward || !street) {
       setErrorMessage("Vui lòng điền đầy đủ thông tin.");
       return;
     }
   
-    const address = `${province}, ${district}, ${ward}, ${street}`;
+    // Validate dob in range 0-12 months
+    const birthDate = new Date(dob);
+    const today = new Date();
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(today.getMonth() - 12);
+    if (birthDate < twelveMonthsAgo || birthDate > today) {
+      setErrorMessage("Ngày sinh phải nằm trong khoảng 0-12 tháng tuổi.");
+      return;
+    }
   
+    const address = `${province}, ${district}, ${ward}, ${street}`;
     const payload = {
       userId: userId || 0,
       childrenFullname: childrenFullName,
@@ -58,8 +79,8 @@ function CreatechildPage() {
       vaccinationDetails: [
         {
           id: 0,
-          diseaseId: null, 
-          vaccineId: null, 
+          diseaseId: null,
+          vaccineId: null,
           expectedInjectionDate: new Date().toISOString(),
           actualInjectionDate: new Date().toISOString()
         }
@@ -82,6 +103,54 @@ function CreatechildPage() {
       setErrorMessage(err.response?.data?.message || "Đã xảy ra lỗi khi tạo hồ sơ trẻ.");
     }
   };
+  
+  // const handleCreateChild = async () => {
+  //   setErrorMessage(""); // Reset error message
+
+  //   if (!childrenFullName || !dob || !motherFullName || !fatherFullName || !phonemom || !phonedad || !province || !district || !ward || !street) {
+  //     setErrorMessage("Vui lòng điền đầy đủ thông tin.");
+  //     return;
+  //   }
+  
+  //   const address = `${province}, ${district}, ${ward}, ${street}`;
+  
+  //   const payload = {
+  //     userId: userId || 0,
+  //     childrenFullname: childrenFullName,
+  //     dob: new Date(dob).toISOString(),
+  //     gender: gender,
+  //     fatherFullName: fatherFullName,
+  //     motherFullName: motherFullName,
+  //     fatherPhoneNumber: phonedad,
+  //     motherPhoneNumber: phonemom,
+  //     address: address,
+  //     vaccinationDetails: [
+  //       {
+  //         id: 0,
+  //         diseaseId: null, 
+  //         vaccineId: null, 
+  //         expectedInjectionDate: new Date().toISOString(),
+  //         actualInjectionDate: new Date().toISOString()
+  //       }
+  //     ]
+  //   };
+  
+  //   try {
+  //     console.log("Sending child profile data:", JSON.stringify(payload, null, 2));
+  //     const response = await api.post("/Child/create", payload, {
+  //       headers: {
+  //         "accept": "*/*",
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`
+  //       }
+  //     });
+  //     console.log("API response:", response.data);
+  //     navigate("/successbaby");
+  //   } catch (err) {
+  //     console.error("Error creating child profile:", err);
+  //     setErrorMessage(err.response?.data?.message || "Đã xảy ra lỗi khi tạo hồ sơ trẻ.");
+  //   }
+  // };
   return (
     <div className='CreatechildPage-container'>
       <div className='CreatechildPage-From'>
@@ -104,13 +173,22 @@ function CreatechildPage() {
               value={dob}
               onChange={(e) => setDob(e.target.value)}
             /> */}
-            <input
+<input
   type="date"
   className='CreatechildPage-input'
   value={dob}
-  max={new Date().toISOString().split("T")[0]} 
+  min={getMinDate()} // 12 tháng trước
+  max={getMaxDate()} // hôm nay
   onChange={(e) => setDob(e.target.value)}
 />
+
+{errorMessage && (
+  <div style={{ color: "red", marginTop: "10px" }}>
+    {errorMessage}
+  </div>
+)}
+
+
           </div>
         </div>
         <div className='CreatechildPage-content-kk'>
