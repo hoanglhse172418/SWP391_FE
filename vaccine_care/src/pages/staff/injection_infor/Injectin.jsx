@@ -206,83 +206,90 @@ const Injection = () => {
     },
   });
 
-  const columns = [
-    {
-      title: "No.",
-      width: "7%",
-      render: (_, __, index) =>
-        (tableParams.pagination.current - 1) * tableParams.pagination.pageSize +
-        index +
-        1,
-    },
-    {
-      title: "Mã số",
-      dataIndex: "id",
-      render: (id) => id || "N/A",
-      width: "10%",
-    },
-    {
-      title: "Tên bé",
-      dataIndex: "fullname",
-      sorter: (a, b) => (a.fullname || "").localeCompare(b.fullname || ""),
-      width: "20%",
-      render: (fullname) => fullname || "N/A",
-    },
-    {
-      title: "Ngày tiêm",
-      dataIndex: "date",
-      width: "15%",
-      sorter: (a, b) => (a.date || "").localeCompare(b.date || ""),
-      render: (date) => date || "N/A",
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      width: "15%",
-      render: (status) => (
-        <span className={`status_label ${statusMap[status]?.className || ""}`}>
-          {statusMap[status]?.label || "Không xác định"}
-        </span>
-      ),
-    },
-    {
-      title: "Chi tiết",
-      width: "15%",
-      render: (_, record) => (
-        <div className="inject_detail">
-          <button
-            className={`injection_detail_button ${
-              record.status === "Canceled" ? "disabled-button" : ""
-            }`}
-            onClick={() =>
-              record.status !== "Canceled" && handleDetails(record)
-            }
-            disabled={record.status === "Canceled"}
-          >
-            Chi tiết
-          </button>
-          <button
-            className={`injection_cancel_button ${
-              record.status === "Canceled" || record.status === "Completed"
-                ? "disabled-button"
-                : ""
-            }`}
-            onClick={() =>
-              record.status !== "Canceled" &&
-              record.processStep !== "Injected" &&
-              handleCancel(record.id)
-            }
-            disabled={
-              record.status === "Canceled" || record.status === "Completed"
-            }
-          >
-            Hủy
-          </button>
-        </div>
-      ),
-    },
-  ];
-
+  const getColumns = () => {
+    const baseColumns = [
+      {
+        title: "No.",
+        width: "7%",
+        render: (_, __, index) =>
+          (tableParams.pagination.current - 1) * tableParams.pagination.pageSize +
+          index +
+          1,
+      },
+      {
+        title: "Mã số",
+        dataIndex: "id",
+        render: (id) => id || "N/A",
+        width: "10%",
+      },
+      {
+        title: "Tên bé",
+        dataIndex: "fullname",
+        sorter: (a, b) => (a.fullname || "").localeCompare(b.fullname || ""),
+        width: "20%",
+        render: (fullname) => fullname || "N/A",
+      },
+      {
+        title: "Ngày tiêm",
+        dataIndex: "date",
+        width: "15%",
+        sorter: (a, b) => (a.date || "").localeCompare(b.date || ""),
+        render: (date) => date || "N/A",
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "status",
+        width: "15%",
+        render: (status) => (
+          <span className={`status_label ${statusMap[status]?.className || ""}`}>
+            {statusMap[status]?.label || "Không xác định"}
+          </span>
+        ),
+      },
+    ];
+  
+    if (activeTab === "today") {
+      baseColumns.push({
+        title: "Chi tiết",
+        width: "15%",
+        render: (_, record) => (
+          <div className="inject_detail">
+            <button
+              className={`injection_detail_button ${
+                record.status === "Canceled" ? "disabled-button" : ""
+              }`}
+              onClick={() =>
+                record.status !== "Canceled" && handleDetails(record)
+              }
+              disabled={record.status === "Canceled"}
+            >
+              Chi tiết
+            </button>
+            <button
+              className={`injection_cancel_button ${
+                record.status === "Canceled" || record.status === "Completed"
+                  ? "disabled-button"
+                  : ""
+              }`}
+              onClick={() =>
+                record.status !== "Canceled" &&
+                record.processStep !== "Injected" &&
+                handleCancel(record.id)
+              }
+              disabled={
+                record.status === "Canceled" || record.status === "Completed"
+              }
+            >
+              Hủy
+            </button>
+          </div>
+        ),
+      });
+    }
+  
+    return baseColumns;
+  };
+  
   return (
     <div className="injection">
       <h2 className="injection_topic">Danh sách đăng ký tiêm</h2>
@@ -308,7 +315,7 @@ const Injection = () => {
 
       <div className="injection_tab_content">
         <Table
-          columns={columns}
+          columns={getColumns()}
           rowKey={(record) => record.id}
           dataSource={data}
           loading={loading}
