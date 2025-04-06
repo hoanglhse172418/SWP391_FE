@@ -5,11 +5,28 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.admin .disease-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
 .admin .disease-management-title {
   font-size: 28px;
   font-weight: 600;
   color: var(--primary-colorVaccine);
-  margin-bottom: 24px;
+  margin: 0;
+}
+
+.admin .create-disease-button {
+  background-color: var(--primary-colorVaccine);
+  border-color: var(--primary-colorVaccine);
+}
+
+.admin .create-disease-button:hover {
+  background-color: #00a884;
+  border-color: #00a884;
 }
 
 /* Ant Design Table Customization */
@@ -64,6 +81,47 @@
 .admin .disease-management .ant-pagination {
   margin: 16px 0;
   text-align: right;
+}
+
+/* Modal Customization */
+.admin .disease-management .ant-modal-content {
+  border-radius: 8px;
+}
+
+.admin .disease-management .ant-modal-header {
+  border-radius: 8px 8px 0 0;
+}
+
+.admin .disease-management .ant-modal-title {
+  color: var(--primary-colorVaccine);
+  font-weight: 600;
+}
+
+.admin .disease-management .ant-modal-footer {
+  border-radius: 0 0 8px 8px;
+}
+
+.admin .disease-management .ant-modal-footer .ant-btn-primary {
+  background-color: var(--primary-colorVaccine);
+  border-color: var(--primary-colorVaccine);
+}
+
+.admin .disease-management .ant-modal-footer .ant-btn-primary:hover {
+  background-color: #00a884;
+  border-color: #00a884;
+}
+
+/* Input Customization */
+.admin .disease-management .ant-input {
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.admin .disease-management .ant-input:focus,
+.admin .disease-management .ant-input:hover {
+  border-color: var(--primary-colorVaccine);
+  box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.1);
 }
 
 Specific styles for disease description column */
