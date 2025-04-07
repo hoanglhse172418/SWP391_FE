@@ -84,7 +84,20 @@ const Vaccine = () => {
       // Process vaccines
       const formattedVaccines = [];
       
+      // Create a map of id to vaccine for resolving references
+      const vaccineReferences = {};
+      vaccinesResponse.data.$values.forEach(vaccine => {
+        if (vaccine.$id) {
+          vaccineReferences[vaccine.$id] = vaccine;
+        }
+      });
+      
       for (const vaccine of vaccinesResponse.data.$values) {
+        // Skip processing if this is just a reference (has only $ref property)
+        if (vaccine.$ref && !vaccine.id) {
+          continue;
+        }
+        
         // Lấy thông tin bệnh cho mỗi vaccine
         let vaccineDiseasesInfo = [];
         
@@ -451,7 +464,7 @@ const Vaccine = () => {
 
       // Kiểm tra các vaccine được chọn
       const validVaccines = selectedVaccines.filter(
-        (v) => v.vaccineId && v.doseNumber > 0
+        (v) => v.vaccineId && v.vaccineId !== ""
       );
       if (validVaccines.length === 0) {
         message.error("Vui lòng chọn ít nhất một vaccine");
@@ -461,10 +474,10 @@ const Vaccine = () => {
       const payload = {
         name: packageName.trim(),
         vaccinePackageItems: selectedVaccines
-          .filter((v) => v.vaccineId && v.doseNumber > 0)
+          .filter((v) => v.vaccineId && v.vaccineId !== "")
           .map((item) => ({
             vaccineId: Number(item.vaccineId),
-            doseNumber: Number(item.doseNumber),
+            doseNumber: 1, // Cố định số liều là 1
           })),
       };
 
@@ -880,13 +893,21 @@ const Vaccine = () => {
               </div>
               <div style={{ width: "80px" }}>
                 <label style={{ display: "block", marginBottom: "4px" }}>Số liều:</label>
-                <InputNumber
-                  min={1}
-                  value={vaccine.doseNumber}
-                  onChange={(value) => updateVaccineField(index, "doseNumber", value)}
-                  placeholder="Số liều"
-                  style={{ width: "100%" }}
-                />
+                <div
+                  style={{
+                    padding: "4px 11px",
+                    border: "1px solid #d9d9d9",
+                    borderRadius: "6px",
+                    backgroundColor: "#f5f5f5",
+                    textAlign: "center",
+                    color: "#000000d9",
+                    fontSize: "14px",
+                    lineHeight: "22px",
+                    width: "100%"
+                  }}
+                >
+                  1
+                </div>
               </div>
               {selectedVaccines.length > 1 && (
                 <Button 
