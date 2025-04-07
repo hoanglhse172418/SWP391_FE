@@ -237,7 +237,7 @@ useEffect(() => {
             .then(response => {
                 const vaccines = response.data?.$values || [];
                 setRelatedVaccines(vaccines);
-                setShowVaccineSelect(vaccines.length > 0); // Nếu có vaccine thì hiển thị ô chọn vaccine
+                setShowVaccineSelect(vaccines.length > 0); 
             })
             .catch(error => {
                 console.error('Lỗi khi lấy vaccine theo bệnh:', error);
