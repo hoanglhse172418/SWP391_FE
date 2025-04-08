@@ -130,6 +130,7 @@ const Vaccine = () => {
           imageUrl: vaccine.imageUrl,
           inStockNumber: vaccine.inStockNumber,
           price: vaccine.price,
+          displayPrice: formatPrice(vaccine.price),
           recAgeStart: vaccine.recAgeStart,
           recAgeEnd: vaccine.recAgeEnd,
           status: vaccine.inStockNumber > 0 ? "Còn hàng" : "Hết hàng",
@@ -251,6 +252,7 @@ const Vaccine = () => {
       dataIndex: "price",
       key: "price",
       width: 120,
+      render: (price) => formatPrice(price),
     },
     {
       title: "Trạng thái",
@@ -816,7 +818,7 @@ const Vaccine = () => {
     setNewVaccine(prev => ({
       ...prev,
       price: numericValue,
-      displayPrice: formatPrice(numericValue) // Thêm displayPrice để hiển thị
+      displayPrice: formatPrice(numericValue)
     }));
   };
 
