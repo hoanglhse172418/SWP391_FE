@@ -209,6 +209,8 @@ const Inject = ({ record }) => {
         return {
           appointmentId: Number(appointmentId),
           newDate: parsedDate.toISOString(),
+          parsedDate,
+          formattedDate: parsedDate.toDateString(),
         };
       })
       .filter(Boolean); // Lọc bỏ giá trị null
@@ -217,6 +219,33 @@ const Inject = ({ record }) => {
       alert("Không có thay đổi nào để lưu!");
       return;
     }
+
+    const existingDates = vaccineData
+    .filter((item) => !updates.some((u) => u.appointmentId === item.appointmentId))
+    .map((item) => new Date(item.dateInjection).toDateString());
+
+    for (let update of updates) {
+      if (existingDates.includes(update.formattedDate)) {
+        notification.error({
+          message: `Đã có mũi tiêm vào ngày ${new Date(update.newDate).toLocaleDateString("vi-VN")}. Vui lòng chọn ngày khác.`,
+        });
+        return;
+      }
+    }
+
+    for (let update of updates) {
+      const original = vaccineData.find((item) => item.appointmentId === update.appointmentId);
+      if (original && original.dateInjection) {
+        const originalDate = new Date(original.dateInjection);
+        if (update.parsedDate < originalDate) {
+          notification.error({
+            message: `Ngày tiêm mới phải sau ngày đã lên lịch là ${originalDate.toLocaleDateString("vi-VN")}.`,
+          });
+          return;
+        }
+      }
+    }
+  
 
     try {
       const response = await api.put(
