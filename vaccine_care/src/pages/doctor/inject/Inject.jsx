@@ -719,10 +719,13 @@ const Inject = ({ record }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {vaccineData.map((item, index) => (
+                        {vaccineData
+                        .slice()
+                        .sort((a,b) => new Date(a.dateInjection) - new Date(b.dateInjection))
+                        .map((item, index) => (
                           <tr key={index}>
                             <td>
-                              {`Mũi ${index + 1}:`}{" "}
+                              
                               {getVaccineName(item.vaccineId)}
                             </td>
 
