@@ -329,14 +329,17 @@ function VaccinationScheduleStatus() {
             phone: pkg.contactPhoneNumber,
             package: pkg.vaccinePackageName,
             dateInjection: new Date(pkg.vaccineItems.$values[0].dateInjection).getTime(),
-            injections: pkg.vaccineItems.$values.map((dose) => ({
+            injections: pkg.vaccineItems.$values
+            .sort((a, b) => new Date(a.dateInjection) - new Date(b.dateInjection))
+            .map((dose) => ({
               id: dose.id,
-              vaccine: `Mũi ${dose.doseSequence} - ${dose.vaccineName}`,
+              vaccine: `${dose.vaccineName}`,
               date: formatDate(dose.dateInjection),
               status: dose.status,
               dateInjection: new Date(dose.dateInjection).getTime(),
               injectionNote: dose.injectionNote,
-            })),
+            }))
+          ,
           }));
 
           setSingleAppointments(single.sort((a, b) => a.dateInjection - b.dateInjection));

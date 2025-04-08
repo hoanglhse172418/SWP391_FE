@@ -230,25 +230,44 @@ function BookingPage() {
 
 // Khi chọn bệnh, gọi API để lấy danh sách vaccine liên quan ✅
 const [showVaccineSelect, setShowVaccineSelect] = useState(false);
-
 useEffect(() => {
-    if (selectedDisease) {
-        api.get(`/Vaccine/get-vaccines-by-diasease-name/${selectedDisease}`)
-            .then(response => {
-                const vaccines = response.data?.$values || [];
-                setRelatedVaccines(vaccines);
-                setShowVaccineSelect(vaccines.length > 0); 
-            })
-            .catch(error => {
-                console.error('Lỗi khi lấy vaccine theo bệnh:', error);
-                setRelatedVaccines([]); 
-                setShowVaccineSelect(false); // Ẩn ô chọn nếu lỗi xảy ra
-            });
-    } else {
-        setRelatedVaccines([]);
-        setShowVaccineSelect(false);
-    }
+  if (selectedDisease) {
+      api.get(`/Vaccine/get-vaccines-by-diasease-name/${selectedDisease}`)
+          .then(response => {
+              const vaccines = response.data?.$values || [];
+              console.log("💉 Vaccine theo bệnh:", vaccines); // 🧠 Console ở đây
+              setRelatedVaccines(vaccines);
+              setShowVaccineSelect(vaccines.length > 0); 
+          })
+          .catch(error => {
+              console.error('❌ Lỗi khi lấy vaccine theo bệnh:', error);
+              setRelatedVaccines([]); 
+              setShowVaccineSelect(false); 
+          });
+  } else {
+      setRelatedVaccines([]);
+      setShowVaccineSelect(false);
+  }
 }, [selectedDisease]);
+
+// useEffect(() => {
+//     if (selectedDisease) {
+//         api.get(`/Vaccine/get-vaccines-by-diasease-name/${selectedDisease}`)
+//             .then(response => {
+//                 const vaccines = response.data?.$values || [];
+//                 setRelatedVaccines(vaccines);
+//                 setShowVaccineSelect(vaccines.length > 0); 
+//             })
+//             .catch(error => {
+//                 console.error('Lỗi khi lấy vaccine theo bệnh:', error);
+//                 setRelatedVaccines([]); 
+//                 setShowVaccineSelect(false); // Ẩn ô chọn nếu lỗi xảy ra
+//             });
+//     } else {
+//         setRelatedVaccines([]);
+//         setShowVaccineSelect(false);
+//     }
+// }, [selectedDisease]);
 
     // Xử lý đặt lịch
 
