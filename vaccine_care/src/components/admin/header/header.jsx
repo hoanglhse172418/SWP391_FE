@@ -6,7 +6,19 @@ import { IoMenuOutline } from "react-icons/io5"; // Import icon
 import axios from 'axios';
 import { Spin } from 'antd';
 
+// Constants
 const API_BASE_URL = 'https://vaccinecare.azurewebsites.net/api';
+
+// Helper functions
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString('vi-VN');
+};
+
+const formatRole = (role) => {
+    if (!role) return 'N/A';
+    return role.charAt(0).toUpperCase() + role.slice(1);
+};
 
 const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
     const [showModal, setShowModal] = useState(false);
@@ -42,32 +54,54 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
         };
     }, []);
 
-    // Format date function
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleString('vi-VN');
-    };
+    const renderUserInfo = () => (
+        <>
+            <div className="admin-info-item">
+                <strong>Email:</strong>
+                <span>{userData?.email || 'N/A'}</span>
+            </div>
+            <div className="admin-info-item">
+                <strong>Vai trò:</strong>
+                <span>{formatRole(userData?.role)}</span>
+            </div>
+            <div className="admin-info-item">
+                <strong>Ngày tạo:</strong>
+                <span>{formatDate(userData?.createdAt)}</span>
+            </div>
+            <div className="admin-info-item">
+                <strong>Đăng nhập cuối:</strong>
+                <span>{formatDate(userData?.lastLogin)}</span>
+            </div>
+            <div className="admin-info-item">
+                <strong>Cập nhật cuối:</strong>
+                <span>{formatDate(userData?.updatedAt)}</span>
+            </div>
+        </>
+    );
 
     return (
         <div className="admin-header">
             <div className="admin-header-title">
-                <button className="admin-sidebar-toggle-btn" onClick={toggleSidebar}>
+                <button 
+                    className="admin-sidebar-toggle-btn" 
+                    onClick={toggleSidebar}
+                    aria-label="Toggle Sidebar"
+                >
                     <IoMenuOutline />
                 </button>
                 <img src={logo} alt="Logo" className="admin-header-logo" />
                 <span className="admin-header-admin-text">Quản trị viên</span>
             </div>
-            <div className="admin-header-search-container">
-                <input 
-                    type="text" 
-                    placeholder="Tìm kiếm..." 
-                    className="admin-header-search-input" 
-                    aria-label="Search"
-                />
-                <div className="admin-icons">
-                    <div className="admin-profile-picture" onClick={() => setShowModal(true)}>
-                        <img src={profileImage} alt="Profile" />
-                    </div>
+
+            <div className="admin-icons">
+                <div 
+                    className="admin-profile-picture" 
+                    onClick={() => setShowModal(true)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => e.key === 'Enter' && setShowModal(true)}
+                >
+                    <img src={profileImage} alt="Profile" />
                 </div>
             </div>
 
@@ -81,30 +115,15 @@ const Header = ({ toggleSidebar }) => { // Nhận toggleSidebar như một prop
                         ) : (
                             <>
                                 <div className="admin-profile-modal-header">
-                                    <img src={profileImage} alt="Profile" className="admin-modal-profile-img" />
+                                    <img 
+                                        src={profileImage} 
+                                        alt="Profile" 
+                                        className="admin-modal-profile-img" 
+                                    />
                                     <h2>Thông tin tài khoản</h2>
                                 </div>
                                 <div className="admin-profile-modal-content">
-                                    <div className="admin-info-item">
-                                        <strong>Email:</strong>
-                                        <span>{userData?.email || 'N/A'}</span>
-                                    </div>
-                                    <div className="admin-info-item">
-                                        <strong>Vai trò:</strong>
-                                        <span>{userData?.role ? userData.role.charAt(0).toUpperCase() + userData.role.slice(1) : 'N/A'}</span>
-                                    </div>
-                                    <div className="admin-info-item">
-                                        <strong>Ngày tạo:</strong>
-                                        <span>{formatDate(userData?.createdAt)}</span>
-                                    </div>
-                                    <div className="admin-info-item">
-                                        <strong>Đăng nhập cuối:</strong>
-                                        <span>{formatDate(userData?.lastLogin)}</span>
-                                    </div>
-                                    <div className="admin-info-item">
-                                        <strong>Cập nhật cuối:</strong>
-                                        <span>{formatDate(userData?.updatedAt)}</span>
-                                    </div>
+                                    {renderUserInfo()}
                                 </div>
                             </>
                         )}

@@ -121,11 +121,28 @@
 }
 
 .admin .vaccine-description-cell {
-    max-width: 300px;
-    white-space: nowrap;
+    max-height: 4.5em;
     overflow: hidden;
     text-overflow: ellipsis;
-    cursor: pointer;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+}
+
+.disease-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 200px;
+    overflow: hidden;
+}
+
+.disease-tags-container .ant-tag {
+    margin: 2px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Tùy chỉnh style cho Tooltip */
@@ -260,4 +277,22 @@
 .admin .admin-vaccine-modal .ant-modal-footer .ant-btn-primary:hover {
     background-color: #00a884;
     border-color: #00a884;
+}
+
+/* Style cho dropdown chọn vaccine */
+.ant-select-dropdown .ant-select-item {
+    padding: 8px 12px;
+}
+
+.ant-select-dropdown .ant-select-item-option-content {
+    white-space: normal;
+    word-break: break-word;
+}
+
+.ant-select-dropdown .ant-select-item-option-selected {
+    background-color: rgba(0, 184, 148, 0.1);
+}
+
+.ant-select-dropdown .ant-select-item:hover {
+    background-color: #f5f5f5;
 }
