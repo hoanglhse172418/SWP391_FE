@@ -55,7 +55,6 @@ const Vaccine = () => {
   const getAllVaccines = () => api.get("/Vaccine/get-all");
   const getAllVaccinePackages = () => api.get("/VaccinePackage/get-all");
   const getAllDiseases = () => api.get("/Disease/get-all?PageSize=100");
-  const getVaccinesByDisease = (diseaseName) => api.get(`/Vaccine/get-vaccines-by-diasease-name/${diseaseName}`);
 
   useEffect(() => {
     if (activeTab === "vaccine") {
@@ -525,6 +524,22 @@ const Vaccine = () => {
         return;
       }
 
+      // Kiểm tra trùng lặp bệnh
+      const selectedDiseases = validVaccines.map(v => v.diseaseId);
+      const uniqueDiseases = new Set(selectedDiseases);
+      if (selectedDiseases.length !== uniqueDiseases.size) {
+        message.error("Không được chọn trùng lặp bệnh trong gói vaccine");
+        return;
+      }
+
+      // Kiểm tra trùng lặp vaccine
+      const selectedVaccineIds = validVaccines.map(v => v.vaccineId);
+      const uniqueVaccines = new Set(selectedVaccineIds);
+      if (selectedVaccineIds.length !== uniqueVaccines.size) {
+        message.error("Không được chọn trùng lặp vaccine trong gói vaccine");
+        return;
+      }
+
       const payload = {
         name: packageName.trim(),
         vaccinePackageItems: selectedVaccines
@@ -549,27 +564,52 @@ const Vaccine = () => {
 
   const addVaccineField = () => {
     if (selectedVaccines.length < 3) {
-      setSelectedVaccines([
-        ...selectedVaccines,
-        { vaccineId: "", doseNumber: 1, diseaseId: "" },
-      ]);
+      // Thêm một vaccine mới với giá trị mặc định
+      const newVaccine = { vaccineId: "", doseNumber: 1, diseaseId: "" };
+      setSelectedVaccines([...selectedVaccines, newVaccine]);
     }
   };
 
   const removeVaccineField = (index) => {
-    const newVaccines = selectedVaccines.filter((_, i) => i !== index);
-    setSelectedVaccines(newVaccines);
+    setSelectedVaccines(prevVaccines => prevVaccines.filter((_, i) => i !== index));
   };
 
   const updateVaccineField = (index, field, value) => {
     const newVaccines = [...selectedVaccines];
-    newVaccines[index][field] = value;
-    
-    // Reset vaccineId when disease changes
+
+    // Kiểm tra trùng lặp bệnh khi chọn bệnh mới
+    if (field === 'diseaseId' && value) {
+      const isDiseaseSelected = selectedVaccines.some(
+        (v, i) => i !== index && v.diseaseId === value
+      );
+      if (isDiseaseSelected) {
+        message.error("Bệnh này đã được chọn trong gói vaccine");
+        return;
+      }
+    }
+
+    // Kiểm tra trùng lặp vaccine khi chọn vaccine mới
+    if (field === 'vaccineId' && value) {
+      const isVaccineSelected = selectedVaccines.some(
+        (v, i) => i !== index && v.vaccineId === value
+      );
+      if (isVaccineSelected) {
+        message.error("Vaccine này đã được chọn trong gói vaccine");
+        return;
+      }
+    }
+
+    // Cập nhật giá trị mới
+    newVaccines[index] = {
+      ...newVaccines[index],
+      [field]: value,
+    };
+
+    // Reset vaccineId khi thay đổi bệnh
     if (field === 'diseaseId') {
       newVaccines[index].vaccineId = "";
     }
-    
+
     setSelectedVaccines(newVaccines);
   };
 
