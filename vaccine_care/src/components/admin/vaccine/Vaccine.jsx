@@ -29,7 +29,7 @@ const Vaccine = () => {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [packageName, setPackageName] = useState("");
   const [selectedVaccines, setSelectedVaccines] = useState([
-    { vaccineId: "", doseNumber: 1 },
+    { vaccineId: "", doseNumber: 1, diseaseId: "" },
   ]);
   const [isCreateVaccineModalVisible, setIsCreateVaccineModalVisible] =
     useState(false);
@@ -40,8 +40,6 @@ const Vaccine = () => {
     imageFile: null,
     recAgeStart: "",
     recAgeEnd: "",
-    recAgeStartUnit: "month",
-    recAgeEndUnit: "month",
     inStockNumber: "",
     price: "",
     displayPrice: "",
@@ -200,6 +198,8 @@ const Vaccine = () => {
       dataIndex: "id",
       key: "id",
       width: 70,
+      defaultSortOrder: 'ascend',
+      sorter: (a, b) => a.id - b.id
     },
     {
       title: "Hình ảnh",
@@ -432,6 +432,42 @@ const Vaccine = () => {
         key: "name",
       },
       {
+        title: "Phòng bệnh",
+        dataIndex: "diseases",
+        key: "diseases",
+        width: 200,
+        render: (diseases) => {
+          if (!diseases || diseases.length === 0) {
+            return <Tag color="default">Chưa phân loại</Tag>;
+          }
+          
+          // Generate the full list of diseases for tooltip
+          const allDiseases = diseases.join(', ');
+          
+          // Show first 2 diseases and +X more if there are more
+          return (
+            <Tooltip
+              title={allDiseases}
+              placement="topLeft"
+              styles={{ root: { maxWidth: "400px" } }}
+            >
+              <div className="disease-tags-container">
+                {diseases.slice(0, 2).map((disease, index) => (
+                  <Tag key={index} color="blue" style={{ margin: '2px' }}>
+                    {disease}
+                  </Tag>
+                ))}
+                {diseases.length > 2 && (
+                  <Tag color="blue" style={{ margin: '2px' }}>
+                    +{diseases.length - 2} loại bệnh khác
+                  </Tag>
+                )}
+              </div>
+            </Tooltip>
+          );
+        },
+      },
+      {
         title: "Số liều",
         dataIndex: "doseNumber",
         key: "doseNumber",
@@ -444,10 +480,28 @@ const Vaccine = () => {
       },
     ];
 
+    // Map vaccine details to include diseases
+    const vaccineItemsWithDiseases = record.vaccinePackageItems.map(item => {
+      const vaccineDetails = vaccines.find(v => v.id === item.vaccineId);
+      let vaccineDiseasesInfo = [];
+      
+      if (vaccineDetails) {
+        // Lấy danh sách bệnh từ vaccine.diseases nếu có
+        if (vaccineDetails.diseases && vaccineDetails.diseases.length > 0) {
+          vaccineDiseasesInfo = vaccineDetails.diseases;
+        }
+      }
+
+      return {
+        ...item,
+        diseases: vaccineDiseasesInfo
+      };
+    });
+
     return (
       <Table
         columns={vaccineColumns}
-        dataSource={record.vaccinePackageItems}
+        dataSource={vaccineItemsWithDiseases}
         pagination={false}
         rowKey="$id"
       />
@@ -485,7 +539,7 @@ const Vaccine = () => {
       message.success("Tạo gói vaccine thành công");
       setIsCreateModalVisible(false);
       setPackageName("");
-      setSelectedVaccines([{ vaccineId: "", doseNumber: 1 }]);
+      setSelectedVaccines([{ vaccineId: "", doseNumber: 1, diseaseId: "" }]);
       fetchVaccinePackages();
     } catch (error) {
       console.error("Error creating vaccine package:", error);
@@ -497,7 +551,7 @@ const Vaccine = () => {
     if (selectedVaccines.length < 3) {
       setSelectedVaccines([
         ...selectedVaccines,
-        { vaccineId: "", doseNumber: 1 },
+        { vaccineId: "", doseNumber: 1, diseaseId: "" },
       ]);
     }
   };
@@ -510,7 +564,21 @@ const Vaccine = () => {
   const updateVaccineField = (index, field, value) => {
     const newVaccines = [...selectedVaccines];
     newVaccines[index][field] = value;
+    
+    // Reset vaccineId when disease changes
+    if (field === 'diseaseId') {
+      newVaccines[index].vaccineId = "";
+    }
+    
     setSelectedVaccines(newVaccines);
+  };
+
+  // Lọc vaccine theo bệnh đã chọn
+  const getVaccinesByDiseaseId = (diseaseId) => {
+    if (!diseaseId) return [];
+    return vaccines.filter(vaccine => 
+      vaccine.diseaseIds && vaccine.diseaseIds.includes(Number(diseaseId))
+    );
   };
 
   const handleAgeChange = (value, field) => {
@@ -577,17 +645,13 @@ const Vaccine = () => {
         return;
       }
 
-      // Chuyển đổi độ tuổi sang tháng
-      const startAgeInMonths = convertToMonths(newVaccine.recAgeStart, newVaccine.recAgeStartUnit);
-      const endAgeInMonths = convertToMonths(newVaccine.recAgeEnd, newVaccine.recAgeEndUnit);
-
       const formData = new FormData();
       formData.append("VaccineName", newVaccine.vaccineName);
       formData.append("Manufacture", newVaccine.manufacture);
       formData.append("Description", newVaccine.description);
       formData.append("ImageFile", newVaccine.imageFile);
-      formData.append("RecAgeStart", startAgeInMonths);
-      formData.append("RecAgeEnd", endAgeInMonths);
+      formData.append("RecAgeStart", newVaccine.recAgeStart);
+      formData.append("RecAgeEnd", newVaccine.recAgeEnd);
       formData.append("InStockNumber", newVaccine.inStockNumber);
       formData.append("Price", newVaccine.price);
       formData.append("Notes", newVaccine.notes);
@@ -614,8 +678,6 @@ const Vaccine = () => {
         imageFile: null,
         recAgeStart: "",
         recAgeEnd: "",
-        recAgeStartUnit: "month",
-        recAgeEndUnit: "month",
         inStockNumber: "",
         price: "",
         displayPrice: "",
@@ -836,12 +898,13 @@ const Vaccine = () => {
         onCancel={() => {
           setIsCreateModalVisible(false);
           setPackageName("");
-          setSelectedVaccines([{ vaccineId: "", doseNumber: 1 }]);
+          setSelectedVaccines([{ vaccineId: "", doseNumber: 1, diseaseId: "" }]);
         }}
         okText="Tạo"
         cancelText="Hủy"
         className="admin-vaccine-modal"
         style={{ top: '20px' }}
+        width={620}
         maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
         bodyStyle={{ padding: '20px' }}
       >
@@ -857,9 +920,26 @@ const Vaccine = () => {
         </div>
 
         {selectedVaccines.map((vaccine, index) => (
-          <div key={index} style={{ marginBottom: "16px" }}>
-            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
-              <div style={{ flex: 1 }}>
+          <div key={index} style={{ marginBottom: "20px" }}>
+            <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
+              <div style={{ width: "35%" }}>
+                <label style={{ display: "block", marginBottom: "4px" }}>Chọn bệnh:</label>
+                <Select
+                  style={{ width: "100%" }}
+                  value={vaccine.diseaseId}
+                  onChange={(value) => updateVaccineField(index, "diseaseId", value)}
+                  placeholder="Chọn loại bệnh"
+                  listHeight={250}
+                >
+                  {diseases.map((disease) => (
+                    <Select.Option key={disease.id} value={disease.id}>
+                      {disease.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+              
+              <div style={{ width: "35%" }}>
                 <label style={{ display: "block", marginBottom: "4px" }}>Vaccine:</label>
                 <Select
                   style={{ width: "100%" }}
@@ -868,10 +948,11 @@ const Vaccine = () => {
                   placeholder="Chọn vaccine"
                   optionLabelProp="label"
                   listHeight={250}
+                  disabled={!vaccine.diseaseId}
                   dropdownMatchSelectWidth={false}
                   dropdownStyle={{ minWidth: '300px' }}
                 >
-                  {vaccines.map((v) => (
+                  {getVaccinesByDiseaseId(vaccine.diseaseId).map((v) => (
                     <Select.Option 
                       key={v.id} 
                       value={v.id} 
@@ -880,18 +961,15 @@ const Vaccine = () => {
                       <div style={{ padding: '4px 0' }}>
                         <div style={{ fontWeight: 500 }}>{v.name}</div>
                         <div style={{ fontSize: '12px', color: '#666', maxWidth: '280px', whiteSpace: 'normal' }}>
-                          {v.diseases?.length > 0 ? (
-                            v.diseases.length > 2 
-                              ? `${v.diseases.slice(0, 2).join(', ')} +${v.diseases.length - 2} loại bệnh khác`
-                              : v.diseases.join(', ')
-                          ) : 'Chưa phân loại'}
+                          {v.manufacture}
                         </div>
                       </div>
                     </Select.Option>
                   ))}
                 </Select>
               </div>
-              <div style={{ width: "80px" }}>
+              
+              <div style={{ width: "15%" }}>
                 <label style={{ display: "block", marginBottom: "4px" }}>Số liều:</label>
                 <div
                   style={{
@@ -903,20 +981,35 @@ const Vaccine = () => {
                     color: "#000000d9",
                     fontSize: "14px",
                     lineHeight: "22px",
-                    width: "100%"
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                   }}
                 >
                   1
                 </div>
               </div>
+              
               {selectedVaccines.length > 1 && (
-                <Button 
-                  onClick={() => removeVaccineField(index)} 
-                  danger
-                  style={{ marginBottom: "1px" }}
-                >
-                  Xóa
-                </Button>
+                <div>
+                  <Button 
+                    onClick={() => removeVaccineField(index)} 
+                    danger
+                    icon={<span role="img" aria-label="delete" className="anticon anticon-delete">
+                      <svg viewBox="64 64 896 896" focusable="false" data-icon="delete" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+                        <path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM731.3 840H292.7l-24.2-512h487l-24.2 512z"></path>
+                      </svg>
+                    </span>}
+                    style={{ 
+                      width: 'auto', 
+                      minWidth: 'auto',
+                      border: 'none', 
+                      background: 'transparent',
+                      fontSize: '16px'
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -947,8 +1040,6 @@ const Vaccine = () => {
             imageFile: null,
             recAgeStart: "",
             recAgeEnd: "",
-            recAgeStartUnit: "month",
-            recAgeEndUnit: "month",
             inStockNumber: "",
             price: "",
             displayPrice: "",
@@ -1015,48 +1106,24 @@ const Vaccine = () => {
 
           <div style={{ display: "flex", gap: "16px" }}>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi bắt đầu:</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <InputNumber
-                  min={1}
-                  value={newVaccine.recAgeStart}
-                  onChange={(value) => handleAgeChange(value, 'recAgeStart')}
-                  style={{ width: "70%" }}
-                  placeholder="Nhập tuổi bắt đầu"
-                />
-                <Select
-                  value={newVaccine.recAgeStartUnit}
-                  onChange={(value) =>
-                    setNewVaccine((prev) => ({ ...prev, recAgeStartUnit: value }))
-                  }
-                  style={{ width: "30%" }}
-                >
-                  <Select.Option value="month">Tháng</Select.Option>
-                  <Select.Option value="year">Năm</Select.Option>
-                </Select>
-              </div>
+              <label>Độ tuổi bắt đầu (tháng):</label>
+              <InputNumber
+                min={1}
+                value={newVaccine.recAgeStart}
+                onChange={(value) => handleAgeChange(value, 'recAgeStart')}
+                style={{ width: "100%" }}
+                placeholder="Nhập số tháng tuổi bắt đầu"
+              />
             </div>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi kết thúc:</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <InputNumber
-                  min={1}
-                  value={newVaccine.recAgeEnd}
-                  onChange={(value) => handleAgeChange(value, 'recAgeEnd')}
-                  style={{ width: "70%" }}
-                  placeholder="Nhập tuổi kết thúc"
-                />
-                <Select
-                  value={newVaccine.recAgeEndUnit}
-                  onChange={(value) =>
-                    setNewVaccine((prev) => ({ ...prev, recAgeEndUnit: value }))
-                  }
-                  style={{ width: "30%" }}
-                >
-                  <Select.Option value="month">Tháng</Select.Option>
-                  <Select.Option value="year">Năm</Select.Option>
-                </Select>
-              </div>
+              <label>Độ tuổi kết thúc (tháng):</label>
+              <InputNumber
+                min={1}
+                value={newVaccine.recAgeEnd}
+                onChange={(value) => handleAgeChange(value, 'recAgeEnd')}
+                style={{ width: "100%" }}
+                placeholder="Nhập số tháng tuổi kết thúc"
+              />
             </div>
           </div>
 
@@ -1207,53 +1274,29 @@ const Vaccine = () => {
 
           <div style={{ display: "flex", gap: "16px" }}>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi bắt đầu:</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <InputNumber
-                  min={1}
-                  value={vaccineToUpdate?.recAgeStart}
-                  onChange={(value) =>
-                    setVaccineToUpdate((prev) => ({
-                      ...prev,
-                      recAgeStart: value,
-                    }))
-                  }
-                  style={{ width: "70%" }}
-                />
-                <Select
-                  value={vaccineToUpdate?.recAgeStartUnit}
-                  onChange={(value) =>
-                    setVaccineToUpdate((prev) => ({ ...prev, recAgeStartUnit: value }))
-                  }
-                  style={{ width: "30%" }}
-                >
-                  <Select.Option value="month">Tháng</Select.Option>
-                  <Select.Option value="year">Năm</Select.Option>
-                </Select>
-              </div>
+              <label>Độ tuổi bắt đầu (tháng):</label>
+              <InputNumber
+                min={1}
+                value={vaccineToUpdate?.recAgeStart}
+                onChange={(value) =>
+                  setVaccineToUpdate((prev) => ({
+                    ...prev,
+                    recAgeStart: value,
+                  }))
+                }
+                style={{ width: "100%" }}
+              />
             </div>
             <div style={{ flex: 1 }}>
-              <label>Độ tuổi kết thúc:</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <InputNumber
-                  min={1}
-                  value={vaccineToUpdate?.recAgeEnd}
-                  onChange={(value) =>
-                    setVaccineToUpdate((prev) => ({ ...prev, recAgeEnd: value }))
-                  }
-                  style={{ width: "70%" }}
-                />
-                <Select
-                  value={vaccineToUpdate?.recAgeEndUnit}
-                  onChange={(value) =>
-                    setVaccineToUpdate((prev) => ({ ...prev, recAgeEndUnit: value }))
-                  }
-                  style={{ width: "30%" }}
-                >
-                  <Select.Option value="month">Tháng</Select.Option>
-                  <Select.Option value="year">Năm</Select.Option>
-                </Select>
-              </div>
+              <label>Độ tuổi kết thúc (tháng):</label>
+              <InputNumber
+                min={1}
+                value={vaccineToUpdate?.recAgeEnd}
+                onChange={(value) =>
+                  setVaccineToUpdate((prev) => ({ ...prev, recAgeEnd: value }))
+                }
+                style={{ width: "100%" }}
+              />
             </div>
           </div>
 
