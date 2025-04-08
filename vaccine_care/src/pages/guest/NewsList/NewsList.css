@@ -15,3 +15,7 @@ h2.NewlistPage-title.mb-4.text-center {
     color: black;
     cursor: pointer;
 }
+
+img.card-img-top.newpage {
+    height: 340px;
+}

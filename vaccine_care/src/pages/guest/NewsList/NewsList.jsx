@@ -71,7 +71,7 @@ export const NewsList = () => {
         {newsData.map((news, index) => (
           <div className="col-md-6 mb-4" key={news.article_id || index}>
             <div className="card h-100">
-              <img src={news.image_url} className="card-img-top" alt={news.title} />
+              <img src={news.image_url} className="card-img-top newpage" alt={news.title} />
               <div className="card-body">
                 <h5 className="card-title">{news.title}</h5>
                 <div className='NewlistPage-flex'>
