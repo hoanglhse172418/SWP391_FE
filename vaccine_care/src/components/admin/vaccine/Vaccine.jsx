@@ -519,10 +519,10 @@ const Vaccine = () => {
 
       // Kiểm tra các vaccine được chọn
       const validVaccines = selectedVaccines.filter(
-        (v) => v.vaccineId && v.vaccineId !== ""
+        (v) => v.vaccineId && v.vaccineId !== "" && v.diseaseId && v.diseaseId !== ""
       );
       if (validVaccines.length === 0) {
-        message.error("Vui lòng chọn ít nhất một vaccine");
+        message.error("Vui lòng chọn ít nhất một vaccine và bệnh tương ứng");
         return;
       }
 
@@ -544,13 +544,14 @@ const Vaccine = () => {
 
       const payload = {
         name: packageName.trim(),
-        vaccinePackageItems: selectedVaccines
-          .filter((v) => v.vaccineId && v.vaccineId !== "")
-          .map((item) => ({
-            vaccineId: Number(item.vaccineId),
-            doseNumber: 1, // Cố định số liều là 1
-          })),
+        vaccinePackageItems: validVaccines.map((item) => ({
+          vaccineId: Number(item.vaccineId),
+          diseaseId: Number(item.diseaseId),
+          doseNumber: 1, // Cố định số liều là 1
+        })),
       };
+
+      console.log("Payload being sent:", payload); // Thêm log để debug
 
       await api.post("/VaccinePackage/create", payload);
       message.success("Tạo gói vaccine thành công");
