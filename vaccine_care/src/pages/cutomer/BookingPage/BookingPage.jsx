@@ -575,55 +575,6 @@ function BookingPage() {
     };
 
     try {
-      // Nếu là vắc xin gói, kiểm tra xem đã từng đặt gói này chưa
-      // if (vaccineTypeFormatted === "Package" && selectedVaccinePackage) {
-      //   try {
-      //     const res = await api.get(`/Appointment/customer-appointments`, {
-      //       headers: { Authorization: `Bearer ${token}` }
-      //     });
-
-      //     const existingPackages = res.data?.packageVaccineAppointments?.$values || [];
-
-      //     // Check nếu gói đã được đặt và còn mũi chưa huỷ
-      //     const samePackage = existingPackages.find(
-      //       pkg => pkg.vaccinePackageId === parseInt(selectedVaccinePackage)
-      //     );
-
-      //     if (samePackage) {
-      //       const stillActive = samePackage.vaccineItems?.$values.some(item => item.status !== "Canceled");
-      //       if (stillActive) {
-      //         openNotification(
-      //           'warning',
-      //           'Gói vắc xin đã được đặt',
-      //           '⚠️ Gói này đã có lịch tiêm đang hoạt động. Vui lòng chọn gói khác!'
-      //         );
-      //         return;
-      //       }
-      //     }
-
-      //     // Check nếu ngày đó đã có bất kỳ gói vắc xin nào đang đặt
-      //     const selectedDateStr = new Date(appointmentDate).toISOString().split('T')[0];
-      //     const hasOtherPackageSameDay = existingPackages.some(pkg =>
-      //       pkg.vaccineItems?.$values.some(item =>
-      //         new Date(item.dateInjection).toISOString().split('T')[0] === selectedDateStr &&
-      //         item.status !== "Canceled"
-      //       )
-      //     );
-
-      //     if (hasOtherPackageSameDay) {
-      //       openNotification(
-      //         'error',
-      //         'Đã có gói vắc xin trong ngày',
-      //         '❌ Một ngày chỉ được tiêm 1 gói vắc xin. Vui lòng chọn ngày khác!'
-      //       );
-      //       return;
-      //     }
-
-      //   } catch (error) {
-      //     console.error("❌ Lỗi khi kiểm tra gói vắc xin:", error);
-      //   }
-      // }
-
       if (vaccineTypeFormatted === "Package" && selectedVaccinePackage) {
         try {
           const res = await api.get(`/Appointment/customer-appointments`, {
@@ -632,6 +583,8 @@ function BookingPage() {
 
           const existingPackages =
             res.data?.packageVaccineAppointments?.$values || [];
+          const singleVaccineAppointments = 
+            res.data?.singleVaccineAppointments?.$values || [];
 
           // ❌ Không cho đặt nếu gói này đã từng được đặt cho chính đứa trẻ này
           const alreadyBooked = existingPackages.some(
@@ -647,6 +600,64 @@ function BookingPage() {
               "❌ Gói vắc xin này đã từng được đặt cho bé này. Không thể đặt lại!"
             );
             return;
+          }
+
+          // Kiểm tra nếu trẻ đang có lịch đang chờ tiêm
+          const hasActiveAppointments = singleVaccineAppointments.some(
+            app => app.childrenId === parseInt(selectedChild) && 
+                  ['Pending', 'Processing', 'Waiting'].includes(app.status)
+          );
+
+          // Kiểm tra nếu trẻ đang có gói vắc xin đang chờ tiêm
+          const hasActivePackages = existingPackages.some(
+            pkg => pkg.childrenId === parseInt(selectedChild) &&
+                  pkg.vaccineItems?.$values.some(
+                    item => ['Pending', 'Processing', 'Waiting'].includes(item.status)
+                  )
+          );
+
+          if (hasActiveAppointments || hasActivePackages) {
+            openNotification(
+              "error",
+              "Đã có lịch tiêm",
+              "Trẻ hiện đang có lịch hẹn lẻ hay một gói tiêm chủng chưa hoàn tất. Vui lòng hoàn tất hoặc huỷ gói hiện tại trước khi đặt thêm."
+            );
+            return;
+          }
+
+          // ✅ Lấy thông tin gói vaccine đã chọn
+          const selectedPackageInfo = vaccinePackages.find(
+            (pkg) => pkg.id === parseInt(selectedVaccinePackage)
+          );
+          
+          if (selectedPackageInfo) {
+            // Lấy danh sách các vaccine trong gói
+            const packageVaccinesRes = await api.get(
+              `/VaccinePackage/get-vaccines-by-package/${selectedPackageInfo.id}`
+            );
+            const packageVaccines = packageVaccinesRes.data?.$values || [];
+            
+            // Lọc ra các mũi tiêm lẻ đã hoàn thành hoặc đang xử lý của đứa trẻ
+            const completedVaccines = singleVaccineAppointments.filter(
+              (v) => v.childrenId === parseInt(selectedChild) && 
+                     ['Completed', 'Processing', 'Pending', 'Waiting'].includes(v.status)
+            );
+            
+            // Kiểm tra nếu có vaccine nào trong gói đã được tiêm cho đứa trẻ
+            for (const packageVaccine of packageVaccines) {
+              const alreadyVaccinated = completedVaccines.some(
+                (v) => v.vaccineId === packageVaccine.id
+              );
+              
+              if (alreadyVaccinated) {
+                openNotification(
+                  "error",
+                  "Đã tiêm vắc xin trong gói",
+                  `❌ Bé đã tiêm hoặc đang có lịch tiêm vắc xin "${packageVaccine.name}" có trong gói này. Không thể đặt gói này!`
+                );
+                return;
+              }
+            }
           }
 
           // ✅ Check nếu ngày đó đã có gói khác
@@ -687,9 +698,7 @@ function BookingPage() {
       openNotification(
         "error",
         "Lỗi đặt lịch",
-        `Đặt lịch thất bại! Lỗi: ${
-          error.response?.data?.message || "Không xác định"
-        }`
+        `${error.response?.data?.message || "Trẻ hiện đang có lịch hẹn lẻ hay một gói tiêm chủng chưa hoàn tất. Vui lòng hoàn tất hoặc huỷ gói hiện tại trước khi đặt thêm."}`
       );
     }
   };
