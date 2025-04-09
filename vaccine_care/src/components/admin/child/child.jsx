@@ -59,7 +59,7 @@ const Child = () => {
 
     const fetchChildren = async () => {
         try {
-            const response = await api.get('/Child/get-all');
+            const response = await api.get('/Child/get-all?PageSize=100');
             console.log('Fetched children:', response.data.$values);
             setChildren(response.data.$values.map(formatChildData));
         } catch (error) {
