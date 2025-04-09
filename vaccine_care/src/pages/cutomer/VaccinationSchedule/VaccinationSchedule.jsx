@@ -153,56 +153,6 @@ const handleBooking = () => {
       }, 500); 
     }
   };
-  
-  // const handleSave = async () => {
-  //   if (!selectedVaccine || !selectedDisease || !selectedMonth || !vaccinationProfileId) return;
-  
-  //   const vaccineId = vaccineList.find(v => v.name === selectedVaccine)?.id;
-  //   const existingRecord = vaccinationRecords.find(
-  //     record => record.diseaseId === selectedDisease.id
-  //   );
-  
-  //   // Kiểm tra xem có dữ liệu từ VaccineTemplate không
-  //   const vaccineTemplate = highlightedVaccines[selectedMonth]?.find(
-  //     v => v.diseaseId === selectedDisease.id
-  //   );
-  
-  //   if (vaccineTemplate && vaccineTemplate.notes && vaccineTemplate.expectedInjectionDate) {
-  //     // Nếu ô có dữ liệu từ VaccineTemplate -> cập nhật
-  //     const updateRecord = {
-  //       vaccineId: vaccineId || null,
-  //       month: selectedMonth,
-  //     };
-  
-  //     console.log("🔹 Dữ liệu gửi đi (Cập nhật):", JSON.stringify(updateRecord, null, 2));
-  
-  //     try {
-  //       const response = await api.put(`/VaccinationDetail/update/${existingRecord?.id}`, updateRecord);
-  
-  //       if (response.status === 200 || response.status === 204) {
-  //         console.log("✅ Phản hồi từ server (Cập nhật):", response.data);
-  //         setNotification({ message: "Cập nhật thành công!", type: "success" });
-  //         window.location.reload();
-  //         setVaccinationRecords(prev =>
-  //           prev.map(record =>
-  //             record.id === existingRecord.id ? { ...record, vaccineId, month: selectedMonth } : record
-  //           )
-  //         );
-  //       } else {
-  //         console.warn("⚠️ Phản hồi không mong muốn từ server (Cập nhật):", response);
-  //         setNotification({ message: "Cập nhật thất bại!", type: "error" });
-  //       }
-  //     } catch (error) {
-  //       console.error("❌ Lỗi khi cập nhật tiêm chủng:", error);
-  //       setNotification({ message: "Có lỗi xảy ra!", type: "error" });
-  //     }
-  //   } else {
-  //     // Nếu không có dữ liệu từ VaccineTemplate -> tạo mới
-  //     console.log("🆕 Ô không có dữ liệu từ VaccineTemplate => Chuyển sang tạo mới!");
-  //     handleCreate();
-  //   }
-  // };
-  
   const handleSave = async () => {
     if (!selectedVaccine || !selectedDisease || !selectedMonth || !vaccinationProfileId) {
       setNotification({ message: "Vui lòng chọn đầy đủ thông tin!", type: "error" });
