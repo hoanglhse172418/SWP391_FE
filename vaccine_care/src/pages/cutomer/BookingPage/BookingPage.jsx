@@ -391,104 +391,6 @@ if (isDuplicate) {
         };
     
         try {
-
-          // Nếu là vắc xin gói, kiểm tra xem đã từng đặt gói này chưa
-          // if (vaccineTypeFormatted === "Package" && selectedVaccinePackage) {
-          //   try {
-          //     const res = await api.get(`/Appointment/customer-appointments`, {
-          //       headers: { Authorization: `Bearer ${token}` }
-          //     });
-          
-          //     const existingPackages = res.data?.packageVaccineAppointments?.$values || [];
-          
-          //     // Check nếu gói đã được đặt và còn mũi chưa huỷ
-          //     const samePackage = existingPackages.find(
-          //       pkg => pkg.vaccinePackageId === parseInt(selectedVaccinePackage)
-          //     );
-          
-          //     if (samePackage) {
-          //       const stillActive = samePackage.vaccineItems?.$values.some(item => item.status !== "Canceled");
-          //       if (stillActive) {
-          //         openNotification(
-          //           'warning',
-          //           'Gói vắc xin đã được đặt',
-          //           '⚠️ Gói này đã có lịch tiêm đang hoạt động. Vui lòng chọn gói khác!'
-          //         );
-          //         return;
-          //       }
-          //     }
-          
-          //     // Check nếu ngày đó đã có bất kỳ gói vắc xin nào đang đặt
-          //     const selectedDateStr = new Date(appointmentDate).toISOString().split('T')[0];
-          //     const hasOtherPackageSameDay = existingPackages.some(pkg =>
-          //       pkg.vaccineItems?.$values.some(item =>
-          //         new Date(item.dateInjection).toISOString().split('T')[0] === selectedDateStr &&
-          //         item.status !== "Canceled"
-          //       )
-          //     );
-          
-          //     if (hasOtherPackageSameDay) {
-          //       openNotification(
-          //         'error',
-          //         'Đã có gói vắc xin trong ngày',
-          //         '❌ Một ngày chỉ được tiêm 1 gói vắc xin. Vui lòng chọn ngày khác!'
-          //       );
-          //       return;
-          //     }
-          
-          //   } catch (error) {
-          //     console.error("❌ Lỗi khi kiểm tra gói vắc xin:", error);
-          //   }
-          // }
-
-          if (vaccineTypeFormatted === "Package" && selectedVaccinePackage) {
-            try {
-              const res = await api.get(`/Appointment/customer-appointments`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-          
-              const existingPackages = res.data?.packageVaccineAppointments?.$values || [];
-          
-              // ❌ Không cho đặt nếu gói này đã từng được đặt cho chính đứa trẻ này
-              const alreadyBooked = existingPackages.some(pkg =>
-                pkg.vaccinePackageId === parseInt(selectedVaccinePackage) &&
-                pkg.childrenId === parseInt(selectedChild)
-              );
-          
-              if (alreadyBooked) {
-                openNotification(
-                  'error',
-                  'Trùng gói vắc xin',
-                  '❌ Gói vắc xin này đã từng được đặt cho bé này. Không thể đặt lại!'
-                );
-                return;
-              }
-          
-              // ✅ Check nếu ngày đó đã có gói khác
-              const selectedDateStr = new Date(appointmentDate).toISOString().split('T')[0];
-              const hasOtherPackageSameDay = existingPackages.some(pkg =>
-                pkg.vaccineItems?.$values.some(item =>
-                  new Date(item.dateInjection).toISOString().split('T')[0] === selectedDateStr &&
-                  item.childrenId === parseInt(selectedChild) &&
-                  item.status !== "Canceled"
-                )
-              );
-          
-              if (hasOtherPackageSameDay) {
-                openNotification(
-                  'error',
-                  'Đã có gói trong ngày',
-                  '❌ Bé đã có lịch tiêm gói trong ngày này. Vui lòng chọn ngày khác!'
-                );
-                return;
-              }
-          
-            } catch (error) {
-              console.error("❌ Lỗi khi kiểm tra gói vắc xin:", error);
-            }
-          }
-          
-
           await api.post('/Appointment/book-appointment', requestData, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -496,11 +398,16 @@ if (isDuplicate) {
           setTimeout(() => {
             navigate('/vaccinationScheduleStatus');
           }, 1500);
-          
-          
-
         } catch (error) {
-          openNotification('error', 'Lỗi đặt lịch', `Đặt lịch thất bại! Lỗi: ${error.response?.data?.message || "Không xác định"}`);
+          // Lấy message từ response của API và loại bỏ "Internal server error:"
+          let errorMessage = error.response?.data?.message || error.response?.data || "Không xác định";
+          errorMessage = errorMessage.replace("Internal server error:", "").trim();
+          
+          openNotification(
+            'error',
+            'Lỗi đặt lịch',
+            `❌ ${errorMessage}`
+          );
         }
       };
    
